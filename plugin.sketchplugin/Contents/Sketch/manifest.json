@@ -1,0 +1,39 @@
+{
+  "compatibleVersion": 3,
+  "bundleVersion": 1,
+  "commands": [
+    {
+      "script": "padding.js",
+      "shortcut": "command shift u",
+      "name": "Super padding",
+      "identifier": "super-padding"
+    },
+    {
+      "script": "handlers.js",
+      "name": "Super handler",
+      "identifier": "super-handler",
+      "handlers": {
+        "actions": {
+          "SelectionChanged.finish": "handler"
+        }
+      }
+    },
+    {
+      "script": "spacing.js",
+      "shortcut": "command shift y",
+      "name": "Super spacing",
+      "identifier": "super-spacing"
+    }
+  ],
+  "menu": {
+    "title": "superpadding",
+    "items": [
+      "super-padding",
+      "super-spacing"
+    ]
+  },
+  "version": "0.1.0",
+  "name": "superpadding",
+  "disableCocoaScriptPreprocessor": true,
+  "appcast": "https://raw.githubusercontent.com//master/.appcast.xml"
+}
