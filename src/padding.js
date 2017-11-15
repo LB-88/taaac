@@ -1,3 +1,5 @@
+var global = {}
+
 export default function(context) {
 
 	var sketch = context.api();

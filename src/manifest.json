@@ -9,24 +9,23 @@
 			"identifier" : "super-padding"
 		},
 		{
-			"script" : "./handlers.js",
-			"name" : "Super handler",
-			"identifier" : "super-handler",
-			"handlers" : {
-				"actions" : {
-					"SelectionChanged.finish" : "handler"
-				}
-			}
-		},
-		{
 			"script" : "./spacing.js",
 			"shortcut" : "command shift y",
 			"name" : "Super spacing",
 			"identifier" : "super-spacing"
+		},
+		{
+			"script" : "./taaac.js",
+			"name" : "Taaac",
+			"handlers" : {
+				"actions" : {
+					"SelectionChanged.finish" : "taaac"
+				}
+			}
 		}
 	],
 	"menu": {
-		"title": "superpadding",
+		"title": "Taaac",
 		"items": [
 			"super-padding",
 			"super-spacing"

@@ -205,6 +205,8 @@ exports['default'] = function (context) {
 	});
 };
 
+var global = {};
+
 /***/ })
 /******/ ]);
   if (key === 'default' && typeof exports === 'function') {
