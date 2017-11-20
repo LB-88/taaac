@@ -37,7 +37,7 @@ export default class Utils {
 	}
 
 	validateSpacing(spacing) {
-		value = if (/^[0-9]{1,3}$/.test(spacing)) ? true : false
+		value = (/^[0-9]{1,3}$/.test(spacing)) ? true : false
 		return value
 	}
 
