@@ -89,33 +89,26 @@ function taaac(context) {
 
 	utils.selection = context.actionContext.oldSelection;
 
-	taaacCheck = false;
-
 	// Iterate through previously selected objects
 	utils.document.iterateWithNativeLayers(utils.selection, function (selectedObject) {
 
-		// Check if selected object is a group
-		if (selectedObject.isGroup) {
+		// Find objects to update including parents
+		utils.objectsToUpdate = new Array();
+		utils.findObjectsToUpdate(selectedObject);
 
-			// Check if taaac was set
-			taaacCheck = selectedObject.name.split("-t")[1];
-			if (taaacCheck) {
-				utils.spacing(selectedObject);
-				utils.padding(selectedObject);
-				taaacCheck = false;
+		// Update objects
+		utils.objectsToUpdate.forEach(function (objectToUpdate) {
+			if (objectToUpdate.pluginUpdate) {
+				if (utils.isSpacingSet(objectToUpdate.object)) {
+					utils.spacing(objectToUpdate.object);
+				}
+				if (utils.isPaddingSet(objectToUpdate.object)) {
+					utils.padding(objectToUpdate.object);
+				}
+			} else {
+				objectToUpdate.object.adjustToFit();
 			}
-		} else {
-
-			selectedObject = selectedObject.container;
-
-			// Check if taaac was set
-			taaacCheck = selectedObject.name.split("-t")[1];
-			if (taaacCheck) {
-				utils.spacing(selectedObject);
-				utils.padding(selectedObject);
-				taaacCheck = false;
-			}
-		}
+		});
 	});
 }
 
@@ -132,15 +125,347 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Utils = function () {
+
+	// --------------------------------------------------------
+	// CONSTRUCTOR
+	// --------------------------------------------------------
+
 	function Utils(context) {
 		_classCallCheck(this, Utils);
 
 		this.sketch = context.api();
 		this.document = this.sketch.selectedDocument;
 		this.doc = context.document;
+		this.objectsToUpdate = new Array();
 	}
 
+	// --------------------------------------------------------
+	// VALIDATION FUNCTIONS
+	// --------------------------------------------------------
+
 	_createClass(Utils, [{
+		key: "isPaddingSet",
+		value: function () {
+			function isPaddingSet(selectedObject) {
+				value = selectedObject.name.split("p[")[1] ? true : false;
+				return value;
+			}
+
+			return isPaddingSet;
+		}()
+	}, {
+		key: "isSpacingSet",
+		value: function () {
+			function isSpacingSet(selectedObject) {
+				value = selectedObject.name.split("s[")[1] ? true : false;
+				return value;
+			}
+
+			return isSpacingSet;
+		}()
+	}, {
+		key: "isAutoSet",
+		value: function () {
+			function isAutoSet(selectedObject) {
+				value = selectedObject.name.split("-t")[1] ? true : false;
+				return value;
+			}
+
+			return isAutoSet;
+		}()
+	}, {
+		key: "validatePadding",
+		value: function () {
+			function validatePadding(padding) {
+				value = /^([0-9]{1,3}){1}(\s{1}[0-9]{1,3}){0,3}$/.test(padding) ? true : false;
+				return value;
+			}
+
+			return validatePadding;
+		}()
+	}, {
+		key: "validateSpacing",
+		value: function () {
+			function validateSpacing(spacing) {
+				value = /^[0-9]{1,3}$/.test(spacing) ? true : false;
+				return value;
+			}
+
+			return validateSpacing;
+		}()
+
+		// --------------------------------------------------------
+		// FIND OBJECTS TO UPDATE Including parents
+		// --------------------------------------------------------
+
+	}, {
+		key: "findObjectsToUpdate",
+		value: function () {
+			function findObjectsToUpdate(selectedObject) {
+
+				// Create object with selected object and plugin update value
+				var objectToAdd = { object: selectedObject, pluginUpdate: false
+
+					// If object is group add it to objects to update
+				};if (selectedObject.isGroup) {
+
+					// If auto update is set change plugin update value
+					if (this.isAutoSet(selectedObject)) {
+						objectToAdd.pluginUpdate = true;
+					}
+					this.objectsToUpdate.push(objectToAdd);
+				}
+
+				// If parent is not page call function again
+				if (!selectedObject.container.isPage) {
+					this.findObjectsToUpdate(selectedObject.container);
+				}
+			}
+
+			return findObjectsToUpdate;
+		}()
+
+		// --------------------------------------------------------
+		// PADDING Set padding between group sub-layers and Bg
+		// --------------------------------------------------------
+
+	}, {
+		key: "padding",
+		value: function () {
+			function padding(selectedObject) {
+				var self = this;
+
+				// Check if selectedObject is a group
+				if (selectedObject.isGroup) {
+
+					var firstInit = true,
+					    paddingString = '',
+					    padding = [];
+
+					// Check if padding is set or ask for the user to insert padding
+					if (!self.isPaddingSet(selectedObject)) {
+
+						// Ask user to insert padding
+						paddingString = self.sketch.getStringFromUser('Insert separated padding values (es. 16 16 16 16).', '');
+
+						// If padding is valid print padding in group name
+						if (self.validatePadding(paddingString)) {
+							selectedObject.name = selectedObject.name + ' p[' + paddingString + ']';
+						}
+					} else {
+
+						// If padding is not set get padding values from layer name
+						paddingString = selectedObject.name.split("p[")[1].split("]")[0];
+					}
+
+					// If padding string is valid transform into array
+					if (self.validatePadding(paddingString)) {
+						padding = paddingString.split(" ");
+					}
+
+					// If padding is valid execute plugin
+					if (padding.length > 0 && padding.length <= 4) {
+
+						// Assign padding values based on input format
+						if (padding.length == 1) {
+							var paddingT = Number(padding[0]),
+							    paddingR = Number(padding[0]),
+							    paddingB = Number(padding[0]),
+							    paddingL = Number(padding[0]);
+						} else if (padding.length == 2) {
+							var paddingT = Number(padding[0]),
+							    paddingR = Number(padding[1]),
+							    paddingB = Number(padding[0]),
+							    paddingL = Number(padding[1]);
+						} else if (padding.length == 3) {
+							var paddingT = Number(padding[0]),
+							    paddingR = Number(padding[1]),
+							    paddingB = Number(padding[2]),
+							    paddingL = Number(padding[1]);
+						} else if (padding.length == 4) {
+							var paddingT = Number(padding[0]),
+							    paddingR = Number(padding[1]),
+							    paddingB = Number(padding[2]),
+							    paddingL = Number(padding[3]);
+						}
+
+						// Set vars
+						var firstChild = true,
+						    bgCount = 0,
+						    wrapperX = 0,
+						    wrapperY = 0,
+						    wrapperWidth = 0,
+						    wrapperHeight = 0,
+						    groupFrame = selectedObject.frame;
+
+						// Iterate through object sub-layers and get content dimensions excluding background
+						selectedObject.iterate(function (layer) {
+							frame = layer.frame;
+
+							// Check if sub-layer is not background
+							if (layer.name != "Bg") {
+								if (firstChild) {
+									// If first child assign variables
+									wrapperX = frame.x;
+									wrapperY = frame.y;
+									wrapperWidth = frame.width;
+									wrapperHeight = frame.height;
+									firstChild = false;
+								} else {
+									// If not first child calculate frame new position and width
+
+									if (frame.x < wrapperX) {
+										deltaX = wrapperX - frame.x;
+										wrapperX = frame.x;
+										wrapperWidth = wrapperWidth + deltaX;
+									}
+									if (frame.y < wrapperY) {
+										deltaY = wrapperY - frame.y;
+										wrapperY = frame.y;
+										wrapperHeight = wrapperHeight + deltaY;
+									}
+									if (frame.x + frame.width > wrapperX + wrapperWidth) {
+										wrapperWidth = frame.x + frame.width - wrapperX;
+									}
+									if (frame.y + frame.height > wrapperY + wrapperHeight) {
+										wrapperHeight = frame.y + frame.height - wrapperY;
+									}
+								}
+							}
+						});
+
+						// Calculate background dimensions
+						backgroundX = wrapperX - paddingL;
+						backgroundY = wrapperY - paddingT;
+						backgroundWidth = wrapperWidth + paddingL + paddingR;
+						backgroundHeight = wrapperHeight + paddingT + paddingB;
+
+						// Get group background and set its dimensions and position
+						selectedObject.iterate(function (layer) {
+							if (layer.name == "Bg") {
+								bgCount++;
+								layer.frame = new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight);
+							}
+						});
+
+						// If there's no background create one
+						if (!bgCount) {
+
+							newLayer = selectedObject.newShape({ frame: new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight), name: "Bg" });
+
+							newLayer.addToSelection();
+							newLayer.moveToBack();
+						}
+
+						// Resize group to fit children
+						selectedObject.adjustToFit();
+					} else {
+
+						// Fallback message if padding value is not valid
+						self.showMessage("Invalid padding value");
+					}
+				} else {
+
+					// Fallback message if selcted object is not a group
+					self.showMessage("You must select a group");
+				}
+			}
+
+			return padding;
+		}()
+
+		// --------------------------------------------------------
+		// SPACING Set vertical spacing between group sub-layers
+		// --------------------------------------------------------
+
+	}, {
+		key: "spacing",
+		value: function () {
+			function spacing(selectedObject) {
+				var self = this;
+
+				var spacingString = '',
+				    spacing = -1,
+				    firstSpacing = 0,
+				    subLayers = [],
+				    layerOffset = [];
+
+				// Check if selectedObject is a group
+				if (selectedObject.isGroup) {
+
+					// Check if spacing is set or ask for the user to insert spacing
+					if (!self.isSpacingSet(selectedObject)) {
+
+						// Ask user to insert spacing
+						spacingString = self.sketch.getStringFromUser('Insert spacing value (es. 16).', '');
+
+						// If spacing is valid print spacing in group name
+						if (self.validateSpacing(spacingString)) {
+							selectedObject.name = selectedObject.name + ' s[' + spacingString + ']';
+						}
+					} else {
+
+						// If spacing is not set get spacing values from layer name
+						spacingString = selectedObject.name.split("s[")[1].split("]")[0];
+					}
+
+					// If spacing string is valid transform into array
+					if (self.validateSpacing(spacingString)) {
+						spacing = Number(spacingString);
+					}
+
+					// If spacing is valid execute plugin
+					if (spacing >= 0) {
+
+						// Check if padding was set and add padding to first spacing
+						if (self.isPaddingSet(selectedObject)) {
+							padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ");
+							firstSpacing = Number(padding[0]);
+						}
+
+						// Initial offset y
+						var offsetY = firstSpacing;
+
+						// Order sub-layers based on their y position
+						selectedObject.iterate(function (layer) {
+							subLayers.push([layer, layer.frame.y]);
+						});
+						subLayers = subLayers.sort(self.comparator);
+
+						// Cycle through layers array and set y position
+						var arrayLength = subLayers.length;
+						for (var i = 0; i < arrayLength; i++) {
+							layer = subLayers[i][0];
+							if (layer.name != "Bg") {
+								frame = layer.frame;
+								newFrameY = offsetY;
+								offsetY = newFrameY + frame.height + spacing;
+								layer.frame = new self.sketch.Rectangle(frame.x, newFrameY, frame.width, frame.height);
+							}
+						}
+
+						// Resize group to fit children
+						selectedObject.adjustToFit();
+					} else {
+
+						// Fallback message if spacing value is not valid
+						self.showMessage("Invalid spacing value");
+					}
+				} else {
+
+					// Fallback message if selcted object is not a group
+					self.showMessage("You must select a group");
+				}
+			}
+
+			return spacing;
+		}()
+
+		// --------------------------------------------------------
+		// SERVICE FUNCTIONS
+		// --------------------------------------------------------
+
+	}, {
 		key: "showMessage",
 		value: function () {
 			function showMessage(message) {
@@ -160,256 +485,6 @@ var Utils = function () {
 
 			return comparator;
 		}()
-	}, {
-		key: "ifPaddingSet",
-		value: function () {
-			function ifPaddingSet(selectedObject) {
-				value = selectedObject.name.split("p[")[1] ? true : false;
-				return value;
-			}
-
-			return ifPaddingSet;
-		}()
-	}, {
-		key: "ifSpacingSet",
-		value: function () {
-			function ifSpacingSet(selectedObject) {
-				value = selectedObject.name.split("s[")[1] ? true : false;
-				return value;
-			}
-
-			return ifSpacingSet;
-		}()
-	}, {
-		key: "ifAutoSet",
-		value: function () {
-			function ifAutoSet(selectedObject) {
-				value = selectedObject.name.split("-t")[1] ? true : false;
-				return value;
-			}
-
-			return ifAutoSet;
-		}()
-	}, {
-		key: "validatePadding",
-		value: function () {
-			function validatePadding(padding) {
-				value = /^([0-9]{1,2}){1}(\s{1}[0-9]{1,2}){0,3}$/.test(padding) ? true : false;
-				return value;
-			}
-
-			return validatePadding;
-		}()
-	}, {
-		key: "validateSpacing",
-		value: function () {
-			function validateSpacing(spacing) {
-				value = /^[0-9]{1,3}$/.test(spacing) ? true : false;
-				return value;
-			}
-
-			return validateSpacing;
-		}()
-	}, {
-		key: "padding",
-		value: function () {
-			function padding(selectedObject) {
-				var self = this;
-
-				// Check if selectedObject is a group
-				if (selectedObject.isGroup) {
-
-					var firstInit = true,
-					    padding = '';
-
-					// Check if plugin was used or ask for the user to insert padding
-					if (!self.ifPaddingSet(selectedObject)) {
-
-						// Ask user to insert padding
-						padding = self.sketch.getStringFromUser('Insert separated padding values (es. 16 16 16 16).', '');
-
-						// Validate padding
-						self.validatePadding(padding);
-
-						// Print padding in group name
-						selectedObject.name = selectedObject.name + ' p[' + padding + ']';
-					}
-
-					// Get padding values
-					padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ");
-
-					// Assign padding values based on input format
-					if (padding.length == 1) {
-						var paddingT = Number(padding[0]),
-						    paddingR = Number(padding[0]),
-						    paddingB = Number(padding[0]),
-						    paddingL = Number(padding[0]);
-					} else if (padding.length == 2) {
-						var paddingT = Number(padding[0]),
-						    paddingR = Number(padding[1]),
-						    paddingB = Number(padding[0]),
-						    paddingL = Number(padding[1]);
-					} else if (padding.length == 4) {
-						var paddingT = Number(padding[0]),
-						    paddingR = Number(padding[1]),
-						    paddingB = Number(padding[2]),
-						    paddingL = Number(padding[3]);
-					}
-
-					// Set vars
-					var firstChild = true,
-					    bgCount = 0,
-					    wrapperX = 0,
-					    wrapperY = 0,
-					    wrapperWidth = 0,
-					    wrapperHeight = 0,
-					    groupFrame = selectedObject.frame;
-
-					// Iterate through object sub-layers and get content dimensions excluding background
-					selectedObject.iterate(function (layer) {
-						frame = layer.frame;
-
-						// Check if sub-layer is not background
-						if (layer.name != "Bg") {
-							if (firstChild) {
-								// If first child assign variables
-								wrapperX = frame.x;
-								wrapperY = frame.y;
-								wrapperWidth = frame.width;
-								wrapperHeight = frame.height;
-								firstChild = false;
-							} else {
-								// If not first child calculate frame new position and width
-
-								if (frame.x < wrapperX) {
-									deltaX = wrapperX - frame.x;
-									wrapperX = frame.x;
-									wrapperWidth = wrapperWidth + deltaX;
-								}
-								if (frame.y < wrapperY) {
-									deltaY = wrapperY - frame.y;
-									wrapperY = frame.y;
-									wrapperHeight = wrapperHeight + deltaY;
-								}
-								if (frame.x + frame.width > wrapperX + wrapperWidth) {
-									wrapperWidth = frame.x + frame.width - wrapperX;
-								}
-								if (frame.y + frame.height > wrapperY + wrapperHeight) {
-									wrapperHeight = frame.y + frame.height - wrapperY;
-								}
-							}
-						}
-					});
-
-					// Calculate background dimensions
-					backgroundX = wrapperX - paddingL;
-					backgroundY = wrapperY - paddingT;
-					backgroundWidth = wrapperWidth + paddingL + paddingR;
-					backgroundHeight = wrapperHeight + paddingT + paddingB;
-
-					// Get group background and set its dimensions and position
-					selectedObject.iterate(function (layer) {
-						if (layer.name == "Bg") {
-							bgCount++;
-							layer.frame = new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight);
-						}
-					});
-
-					// If there's no background create one
-					if (!bgCount) {
-
-						newLayer = selectedObject.newShape({ frame: new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight), name: "Bg" });
-
-						newLayer.addToSelection();
-						newLayer.moveToBack();
-					}
-
-					// Resize group to fit children
-					selectedObject.adjustToFit();
-				} else {
-
-					// Fallback message if selcted object is not a group
-					self.showMessage("You must select a group");
-				}
-			}
-
-			return padding;
-		}()
-	}, {
-		key: "spacing",
-		value: function (_spacing) {
-			function spacing(_x) {
-				return _spacing.apply(this, arguments);
-			}
-
-			spacing.toString = function () {
-				return _spacing.toString();
-			};
-
-			return spacing;
-		}(function (selectedObject) {
-			var self = this;
-
-			var subLayers = [];
-			var layerOffset = [];
-
-			// Check if selectedObject is a group
-			if (selectedObject.isGroup) {
-
-				// Check if plugin was used or ask for the user to insert flow gutter
-				spacing = selectedObject.name.split("s[")[1];
-				if (!spacing) {
-
-					// Ask user to insert padding
-					spacing = self.sketch.getStringFromUser('Insert spacing value (es. 16).', '');
-
-					// Validate spacing
-					// TO DO
-
-					// Print spacing in group name
-					selectedObject.name = selectedObject.name + ' s[' + spacing + ']';
-				}
-
-				// Get spacing value
-				spacing = selectedObject.name.split("s[")[1].split("]")[0];
-
-				// Check if padding was set and add padding top
-				initialSpacing = 0;
-				padding = selectedObject.name.split("p[")[1];
-				if (padding) {
-					padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ");
-					initialSpacing = Number(padding[0]);
-				}
-
-				// Initial spacing
-				var prevY = initialSpacing;
-
-				// Order sub-layers based on their y position
-				selectedObject.iterate(function (layer) {
-					subLayers.push([layer, layer.frame.y]);
-				});
-				subLayers = subLayers.sort(self.comparator);
-
-				// Cycle through layers array
-				var arrayLength = subLayers.length;
-				for (var i = 0; i < arrayLength; i++) {
-					layer = subLayers[i][0];
-					if (layer.name != "Bg") {
-						frame = layer.frame;
-						newFrameY = prevY;
-						prevY = newFrameY + frame.height + Number(spacing);
-						layer.frame = new self.sketch.Rectangle(frame.x, newFrameY, frame.width, frame.height);
-					}
-				}
-
-				// Resize group to fit children
-				selectedObject.adjustToFit();
-			} else {
-
-				// Fallback message if selcted object is not a group
-				self.showMessage("You must select a group");
-			}
-		})
 	}]);
 
 	return Utils;

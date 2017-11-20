@@ -8,7 +8,7 @@ export default function(context) {
 
 	// Iterate through selected objects
 	utils.selection.iterate(function(selectedObject) {
-
+		
 		utils.padding(selectedObject)
 
 	})
