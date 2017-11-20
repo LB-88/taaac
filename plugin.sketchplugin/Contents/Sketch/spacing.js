@@ -113,11 +113,11 @@ var Utils = function () {
 
 		this.sketch = context.api();
 		this.document = this.sketch.selectedDocument;
-		this.doc = context.document ? context.document : context.actionContext.document;
+		this.doc = context.document;
 	}
 
 	_createClass(Utils, [{
-		key: 'showMessage',
+		key: "showMessage",
 		value: function () {
 			function showMessage(message) {
 				this.doc.showMessage(message);
@@ -126,7 +126,7 @@ var Utils = function () {
 			return showMessage;
 		}()
 	}, {
-		key: 'comparator',
+		key: "comparator",
 		value: function () {
 			function comparator(a, b) {
 				if (a[1] < b[1]) return -1;
@@ -137,7 +137,46 @@ var Utils = function () {
 			return comparator;
 		}()
 	}, {
-		key: 'padding',
+		key: "ifPluginSet",
+		value: function () {
+			function ifPluginSet(selectedObject) {
+				if (selectedObject.name.split("p[")[1] || selectedObject.name.split("s[")[1]) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			return ifPluginSet;
+		}()
+	}, {
+		key: "validatePadding",
+		value: function () {
+			function validatePadding(padding) {
+				if (/^([0-9]{1,2}){1}(\s{1}[0-9]{1,2}){0,3}$/.test(padding)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			return validatePadding;
+		}()
+	}, {
+		key: "validateSpacing",
+		value: function () {
+			function validateSpacing(spacing) {
+				if (/^[0-9]{1,3}$/.test(spacing)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			return validateSpacing;
+		}()
+	}, {
+		key: "padding",
 		value: function () {
 			function padding(selectedObject) {
 				var self = this;
@@ -149,14 +188,13 @@ var Utils = function () {
 					    padding = '';
 
 					// Check if plugin was used or ask for the user to insert padding
-					padding = selectedObject.name.split("p[")[1];
-					if (!padding) {
+					if (!self.ifPluginSet(selectedObject)) {
 
 						// Ask user to insert padding
 						padding = self.sketch.getStringFromUser('Insert separated padding values (es. 16 16 16 16).', '');
 
 						// Validate padding
-						// TO DO
+						self.validatePadding(padding);
 
 						// Print padding in group name
 						selectedObject.name = selectedObject.name + ' p[' + padding + ']';
@@ -263,7 +301,7 @@ var Utils = function () {
 			return padding;
 		}()
 	}, {
-		key: 'spacing',
+		key: "spacing",
 		value: function (_spacing) {
 			function spacing(_x) {
 				return _spacing.apply(this, arguments);
@@ -342,7 +380,7 @@ var Utils = function () {
 	return Utils;
 }();
 
-exports['default'] = Utils;
+exports["default"] = Utils;
 
 /***/ })
 /******/ ]);

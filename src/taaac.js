@@ -1,7 +1,7 @@
 import Utils from "./utils.js";
 
 export function taaac (context) {
-	
+
 	var utils = new Utils(context)
 
 	utils.selection = context.actionContext.oldSelection
@@ -13,8 +13,7 @@ export function taaac (context) {
 
 		// Check if selected object is a group
 		if (selectedObject.isGroup) {
-			log('enter')
-			
+
 			// Check if taaac was set
 			taaacCheck = selectedObject.name.split("-t")[1];
 			if (taaacCheck) {
@@ -24,7 +23,6 @@ export function taaac (context) {
 			}
 
 		} else {
-			log('enter2')
 
 			selectedObject = selectedObject.container
 
