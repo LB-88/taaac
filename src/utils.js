@@ -16,28 +16,29 @@ export default class Utils {
 		return 0;
 	}
 
-	ifPluginSet(selectedObject) {
-		if (selectedObject.name.split("p[")[1] || selectedObject.name.split("s[")[1]) {
-			return true
-		} else {
-			return false
-		}
+	ifPaddingSet(selectedObject) {
+		value = (selectedObject.name.split("p[")[1]) ? true : false
+		return value
+	}
+
+	ifSpacingSet(selectedObject) {
+		value = (selectedObject.name.split("s[")[1]) ? true : false
+		return value
+	}
+
+	ifAutoSet(selectedObject) {
+		value = (selectedObject.name.split("-t")[1]) ? true : false
+		return value
 	}
 
 	validatePadding(padding) {
-		if (/^([0-9]{1,2}){1}(\s{1}[0-9]{1,2}){0,3}$/.test(padding)) {
-			return true
-		} else {
-			return false
-		}
+		value = (/^([0-9]{1,2}){1}(\s{1}[0-9]{1,2}){0,3}$/.test(padding)) ? true : false
+		return value
 	}
 
 	validateSpacing(spacing) {
-		if (/^[0-9]{1,3}$/.test(spacing)) {
-			return true
-		} else {
-			return false
-		}
+		value = if (/^[0-9]{1,3}$/.test(spacing)) ? true : false
+		return value
 	}
 
 	padding(selectedObject) {
@@ -50,7 +51,7 @@ export default class Utils {
 				padding = '';
 
 			// Check if plugin was used or ask for the user to insert padding
-			if (!self.ifPluginSet(selectedObject)) {
+			if (!self.ifPaddingSet(selectedObject)) {
 
 				// Ask user to insert padding
 				padding = self.sketch.getStringFromUser('Insert separated padding values (es. 16 16 16 16).', '');
