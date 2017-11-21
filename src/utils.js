@@ -26,6 +26,11 @@ export default class Utils {
 		return value
 	}
 
+	isAvoidPaddingSet(selectedObject) {
+		value = (selectedObject.name.split("p[-")[1]) ? true : false
+		return value
+	}
+
 	isSpacingSet(selectedObject) {
 		value = (selectedObject.name.split("s[")[1]) ? true : false
 		return value
@@ -167,8 +172,6 @@ export default class Utils {
 							objectX = objectRect.x() - groupAbsoluteXpos,
 							objectY = objectRect.y() - groupAbsoluteYpos
 
-							log('X: ' + objectX + ', Y: ' + objectY + ', W: ' + objectWidth + ', H: ' + objectHeight)
-
 					} else {
 
 						var object = layer,
@@ -178,6 +181,14 @@ export default class Utils {
 							objectX = objectRect.x,
 							objectY = objectRect.y
 
+					}
+
+					// Check if sub-layer has avoid padding set
+					if (self.isAvoidPaddingSet(layer)) {
+						objectX = objectX + paddingL
+						objectY = objectY + paddingT
+						objectWidth = objectWidth - paddingL - paddingR
+						objectHeight = objectHeight - paddingT - paddingB
 					}
 
 					// Check if sub-layer is not background
@@ -308,7 +319,7 @@ export default class Utils {
 					firstSpacing = Number(padding[0])
 				}
 
-				// Initial offset y
+				// Set vars
 				var offsetY = firstSpacing,
 					groupFrame = selectedObject.frame,
 					groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
@@ -346,7 +357,9 @@ export default class Utils {
 				subLayers = subLayers.sort(self.comparator)
 
 				// Cycle through layers array and set y position
-				var arrayLength = subLayers.length
+				var arrayLength = subLayers.length,
+					firstSubLayer = true
+
 				for (var i = 0; i < arrayLength; i++) {
 					var layer = subLayers[i][0]
 
@@ -355,13 +368,18 @@ export default class Utils {
 
 					// Ignore background layer
 					if (layer.name != "Bg") {
+
+						// If first child has avoid padding set remove initial offset
+						if (firstSubLayer) {
+							if (self.isAvoidPaddingSet(layer)) offsetY = 0
+							firstSubLayer = false
+						}
 						
 						// Set new object y to previous offset
 						newObjectY = offsetY
 
 						// If selected object is symbol use old API to set new values
 						if (layerClass == "MSSymbolInstance") {
-
 
 							object = layer.sketchObject
 							objectRect = object.absoluteRect()

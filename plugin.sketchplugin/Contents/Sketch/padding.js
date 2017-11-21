@@ -137,6 +137,16 @@ var Utils = function () {
 			return isPaddingSet;
 		}()
 	}, {
+		key: "isAvoidPaddingSet",
+		value: function () {
+			function isAvoidPaddingSet(selectedObject) {
+				value = selectedObject.name.split("p[-")[1] ? true : false;
+				return value;
+			}
+
+			return isAvoidPaddingSet;
+		}()
+	}, {
 		key: "isSpacingSet",
 		value: function () {
 			function isSpacingSet(selectedObject) {
@@ -299,8 +309,6 @@ var Utils = function () {
 								    objectHeight = objectRect.height(),
 								    objectX = objectRect.x() - groupAbsoluteXpos,
 								    objectY = objectRect.y() - groupAbsoluteYpos;
-
-								log('X: ' + objectX + ', Y: ' + objectY + ', W: ' + objectWidth + ', H: ' + objectHeight);
 							} else {
 
 								var object = layer,
@@ -309,6 +317,14 @@ var Utils = function () {
 								    objectHeight = objectRect.height,
 								    objectX = objectRect.x,
 								    objectY = objectRect.y;
+							}
+
+							// Check if sub-layer has avoid padding set
+							if (self.isAvoidPaddingSet(layer)) {
+								objectX = objectX + paddingL;
+								objectY = objectY + paddingT;
+								objectWidth = objectWidth - paddingL - paddingR;
+								objectHeight = objectHeight - paddingT - paddingB;
 							}
 
 							// Check if sub-layer is not background
@@ -433,7 +449,7 @@ var Utils = function () {
 							firstSpacing = Number(padding[0]);
 						}
 
-						// Initial offset y
+						// Set vars
 						var offsetY = firstSpacing,
 						    groupFrame = selectedObject.frame,
 						    groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
@@ -471,7 +487,9 @@ var Utils = function () {
 						subLayers = subLayers.sort(self.comparator);
 
 						// Cycle through layers array and set y position
-						var arrayLength = subLayers.length;
+						var arrayLength = subLayers.length,
+						    firstSubLayer = true;
+
 						for (var i = 0; i < arrayLength; i++) {
 							var layer = subLayers[i][0];
 
@@ -480,6 +498,12 @@ var Utils = function () {
 
 							// Ignore background layer
 							if (layer.name != "Bg") {
+
+								// If first child has avoid padding set remove initial offset
+								if (firstSubLayer) {
+									if (self.isAvoidPaddingSet(layer)) offsetY = 0;
+									firstSubLayer = false;
+								}
 
 								// Set new object y to previous offset
 								newObjectY = offsetY;
