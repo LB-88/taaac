@@ -68,8 +68,8 @@ export default class Utils {
 			this.objectsToUpdate.push(objectToAdd)
 		}
 
-		// If parent is not page call function again
-		if(!selectedObject.container.isPage) {
+		// If selcted object is not symbol and parent is not page call function again
+		if ((selectedObject.sketchObject.class() != "MSSymbolInstance") && (!selectedObject.container.isPage)) {
 			this.findObjectsToUpdate(selectedObject.container)
 		}
 	}
@@ -271,7 +271,7 @@ export default class Utils {
 			spacing = -1,
 			firstSpacing = 0,
 			subLayers = [],
-			layerOffset = []
+			offsetY = 0
 
 		// Check if selectedObject is a group
 		if (selectedObject.isGroup) {
@@ -353,43 +353,49 @@ export default class Utils {
 					// Get layer class name
 					var layerClass = layer.sketchObject.class()
 
-					// Set new object y to previous offset
-					newObjectY = offsetY
+					// Ignore background layer
+					if (layer.name != "Bg") {
+						
+						// Set new object y to previous offset
+						newObjectY = offsetY
 
-					// If selected object is symbol use old API to set new values
-					if (layerClass == "MSSymbolInstance") {
+						// If selected object is symbol use old API to set new values
+						if (layerClass == "MSSymbolInstance") {
 
-						object = layer.sketchObject
-						objectRect = object.absoluteRect()
-						objectRect.x = subLayers[i][1] + groupAbsoluteXpos
-						objectRect.y = newObjectY + groupAbsoluteYpos
-						objectRect.width = subLayers[i][3]
-						objectRect.height = subLayers[i][4]
 
-					} else if (layer.name != "Bg") {
+							object = layer.sketchObject
+							objectRect = object.absoluteRect()
+							objectRect.x = subLayers[i][1] + groupAbsoluteXpos
+							objectRect.y = newObjectY + groupAbsoluteYpos
+							objectRect.width = subLayers[i][3]
+							objectRect.height = subLayers[i][4]
 
-						layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4])
+						} else {
+							
+							layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4])
+
+						}
+
+						offsetY = newObjectY + subLayers[i][4] + spacing
 
 					}
-
-					offsetY = newObjectY + subLayers[i][4] + spacing
 						
 				}
 
 				// Resize group to fit children
-				selectedObject.adjustToFit();
+				selectedObject.adjustToFit()
 
 			} else {
 
 				// Fallback message if spacing value is not valid
-				self.showMessage("Invalid spacing value");
+				self.showMessage("Invalid spacing value")
 
 			}
 
 		} else {
 
 			// Fallback message if selcted object is not a group
-			self.showMessage("You must select a group");
+			self.showMessage("You must select a group")
 
 		}
 	}

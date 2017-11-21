@@ -216,8 +216,8 @@ var Utils = function () {
 					this.objectsToUpdate.push(objectToAdd);
 				}
 
-				// If parent is not page call function again
-				if (!selectedObject.container.isPage) {
+				// If selcted object is not symbol and parent is not page call function again
+				if (selectedObject.sketchObject["class"]() != "MSSymbolInstance" && !selectedObject.container.isPage) {
 					this.findObjectsToUpdate(selectedObject.container);
 				}
 			}
@@ -415,7 +415,7 @@ var Utils = function () {
 				    spacing = -1,
 				    firstSpacing = 0,
 				    subLayers = [],
-				    layerOffset = [];
+				    offsetY = 0;
 
 				// Check if selectedObject is a group
 				if (selectedObject.isGroup) {
@@ -495,24 +495,28 @@ var Utils = function () {
 							// Get layer class name
 							var layerClass = layer.sketchObject["class"]();
 
-							// Set new object y to previous offset
-							newObjectY = offsetY;
+							// Ignore background layer
+							if (layer.name != "Bg") {
 
-							// If selected object is symbol use old API to set new values
-							if (layerClass == "MSSymbolInstance") {
+								// Set new object y to previous offset
+								newObjectY = offsetY;
 
-								object = layer.sketchObject;
-								objectRect = object.absoluteRect();
-								objectRect.x = subLayers[i][1] + groupAbsoluteXpos;
-								objectRect.y = newObjectY + groupAbsoluteYpos;
-								objectRect.width = subLayers[i][3];
-								objectRect.height = subLayers[i][4];
-							} else if (layer.name != "Bg") {
+								// If selected object is symbol use old API to set new values
+								if (layerClass == "MSSymbolInstance") {
 
-								layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4]);
+									object = layer.sketchObject;
+									objectRect = object.absoluteRect();
+									objectRect.x = subLayers[i][1] + groupAbsoluteXpos;
+									objectRect.y = newObjectY + groupAbsoluteYpos;
+									objectRect.width = subLayers[i][3];
+									objectRect.height = subLayers[i][4];
+								} else {
+
+									layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4]);
+								}
+
+								offsetY = newObjectY + subLayers[i][4] + spacing;
 							}
-
-							offsetY = newObjectY + subLayers[i][4] + spacing;
 						}
 
 						// Resize group to fit children
