@@ -283,65 +283,82 @@ var Utils = function () {
 
 						// Iterate through object sub-layers and get content dimensions excluding background
 						selectedObject.iterate(function (layer) {
-							frame = layer.frame;
+							var layerClass = layer.sketchObject["class"]();
 
-							// Check if sub-layer is not background
-							if (layer.name != "Bg") {
-								if (firstChild) {
-									// If first child assign variables
-									wrapperX = frame.x;
-									wrapperY = frame.y;
-									wrapperWidth = frame.width;
-									wrapperHeight = frame.height;
-									firstChild = false;
-								} else {
-									// If not first child calculate frame new position and width
+							// If selected object is symbol use old API
+							if (layerClass == "MSSymbolInstance") {
+								var symbol = layer.sketchObject,
+								    symbolAbsoluteRect = symbol.absoluteRect(),
+								    symbolAbsoluteWidth = symbolAbsoluteRect.width(),
+								    symbolAbsoluteHeight = symbolAbsoluteRect.height(),
+								    symbolAbsoluteXpos = symbolAbsoluteRect.x(),
+								    symbolAbsoluteYpos = symbolAbsoluteRect.y();
 
-									if (frame.x < wrapperX) {
-										deltaX = wrapperX - frame.x;
+								log('X: ' + symbolAbsoluteXpos);
+							} else {
+
+								// If selected object is not symbol use new API
+								log('default');
+								frame = layer.frame;
+
+								// Check if sub-layer is not background
+								if (layer.name != "Bg") {
+									if (firstChild) {
+										// If first child assign variables
 										wrapperX = frame.x;
-										wrapperWidth = wrapperWidth + deltaX;
-									}
-									if (frame.y < wrapperY) {
-										deltaY = wrapperY - frame.y;
 										wrapperY = frame.y;
-										wrapperHeight = wrapperHeight + deltaY;
-									}
-									if (frame.x + frame.width > wrapperX + wrapperWidth) {
-										wrapperWidth = frame.x + frame.width - wrapperX;
-									}
-									if (frame.y + frame.height > wrapperY + wrapperHeight) {
-										wrapperHeight = frame.y + frame.height - wrapperY;
+										wrapperWidth = frame.width;
+										wrapperHeight = frame.height;
+										firstChild = false;
+									} else {
+										// If not first child calculate frame new position and width
+
+										if (frame.x < wrapperX) {
+											deltaX = wrapperX - frame.x;
+											wrapperX = frame.x;
+											wrapperWidth = wrapperWidth + deltaX;
+										}
+										if (frame.y < wrapperY) {
+											deltaY = wrapperY - frame.y;
+											wrapperY = frame.y;
+											wrapperHeight = wrapperHeight + deltaY;
+										}
+										if (frame.x + frame.width > wrapperX + wrapperWidth) {
+											wrapperWidth = frame.x + frame.width - wrapperX;
+										}
+										if (frame.y + frame.height > wrapperY + wrapperHeight) {
+											wrapperHeight = frame.y + frame.height - wrapperY;
+										}
 									}
 								}
 							}
 						});
 
-						// Calculate background dimensions
-						backgroundX = wrapperX - paddingL;
-						backgroundY = wrapperY - paddingT;
-						backgroundWidth = wrapperWidth + paddingL + paddingR;
-						backgroundHeight = wrapperHeight + paddingT + paddingB;
+						// // Calculate background dimensions
+						// backgroundX = wrapperX - paddingL;
+						// backgroundY = wrapperY - paddingT;
+						// backgroundWidth = wrapperWidth + paddingL + paddingR;
+						// backgroundHeight = wrapperHeight + paddingT + paddingB;
 
-						// Get group background and set its dimensions and position
-						selectedObject.iterate(function (layer) {
-							if (layer.name == "Bg") {
-								bgCount++;
-								layer.frame = new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight);
-							}
-						});
+						// // Get group background and set its dimensions and position
+						// selectedObject.iterate(function(layer) {
+						// 	if(layer.name == "Bg") {
+						// 		bgCount++;
+						// 		layer.frame = new self.sketch.Rectangle(backgroundX,backgroundY,backgroundWidth,backgroundHeight);
+						// 	}
+						// });
 
-						// If there's no background create one
-						if (!bgCount) {
+						// // If there's no background create one
+						// if(!bgCount) {
 
-							newLayer = selectedObject.newShape({ frame: new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight), name: "Bg" });
+						// 	newLayer = selectedObject.newShape({frame: new self.sketch.Rectangle(backgroundX,backgroundY,backgroundWidth,backgroundHeight), name:"Bg"});
 
-							newLayer.addToSelection();
-							newLayer.moveToBack();
-						}
+						// 	newLayer.addToSelection();
+						// 	newLayer.moveToBack();
+						// }
 
-						// Resize group to fit children
-						selectedObject.adjustToFit();
+						// // Resize group to fit children
+						// selectedObject.adjustToFit();
 					} else {
 
 						// Fallback message if padding value is not valid
@@ -364,90 +381,95 @@ var Utils = function () {
 	}, {
 		key: "spacing",
 		value: function () {
-			function spacing(selectedObject) {
-				var self = this;
+			function spacing(selectedObject) {}
+			// var self = this
 
-				var spacingString = '',
-				    spacing = -1,
-				    firstSpacing = 0,
-				    subLayers = [],
-				    layerOffset = [];
+			// var spacingString = '',
+			// 	spacing = -1,
+			// 	firstSpacing = 0,
+			// 	subLayers = [],
+			// 	layerOffset = [];
 
-				// Check if selectedObject is a group
-				if (selectedObject.isGroup) {
+			// // Check if selectedObject is a group
+			// if (selectedObject.isGroup) {
 
-					// Check if spacing is set or ask for the user to insert spacing
-					if (!self.isSpacingSet(selectedObject)) {
 
-						// Ask user to insert spacing
-						spacingString = self.sketch.getStringFromUser('Insert spacing value (es. 16).', '');
+			// 	// Check if spacing is set or ask for the user to insert spacing
+			// 	if (!self.isSpacingSet(selectedObject)) {
 
-						// If spacing is valid print spacing in group name
-						if (self.validateSpacing(spacingString)) {
-							selectedObject.name = selectedObject.name + ' s[' + spacingString + ']';
-						}
-					} else {
+			// 		// Ask user to insert spacing
+			// 		spacingString = self.sketch.getStringFromUser('Insert spacing value (es. 16).', '')
 
-						// If spacing is not set get spacing values from layer name
-						spacingString = selectedObject.name.split("s[")[1].split("]")[0];
-					}
+			// 		// If spacing is valid print spacing in group name
+			// 		if (self.validateSpacing(spacingString)) {
+			// 			selectedObject.name = selectedObject.name + ' s[' + spacingString + ']'
+			// 		}
 
-					// If spacing string is valid transform into array
-					if (self.validateSpacing(spacingString)) {
-						spacing = Number(spacingString);
-					}
+			// 	} else {
 
-					// If spacing is valid execute plugin
-					if (spacing >= 0) {
+			// 		// If spacing is not set get spacing values from layer name
+			// 		spacingString = selectedObject.name.split("s[")[1].split("]")[0]
+			// 	}
 
-						// Check if padding was set and add padding to first spacing
-						if (self.isPaddingSet(selectedObject)) {
-							padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ");
-							firstSpacing = Number(padding[0]);
-						}
+			// 	// If spacing string is valid transform into array
+			// 	if (self.validateSpacing(spacingString)) {
+			// 		spacing = Number(spacingString)
+			// 	}
 
-						// Initial offset y
-						var offsetY = firstSpacing;
+			// 	// If spacing is valid execute plugin
+			// 	if (spacing>=0) {
 
-						// Order sub-layers based on their y position
-						selectedObject.iterate(function (layer) {
-							subLayers.push([layer, layer.frame.y]);
-						});
-						subLayers = subLayers.sort(self.comparator);
+			// 		// Check if padding was set and add padding to first spacing
+			// 		if (self.isPaddingSet(selectedObject)) {
+			// 			padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ")
+			// 			firstSpacing = Number(padding[0])
+			// 		}
 
-						// Cycle through layers array and set y position
-						var arrayLength = subLayers.length;
-						for (var i = 0; i < arrayLength; i++) {
-							layer = subLayers[i][0];
-							if (layer.name != "Bg") {
-								frame = layer.frame;
-								newFrameY = offsetY;
-								offsetY = newFrameY + frame.height + spacing;
-								layer.frame = new self.sketch.Rectangle(frame.x, newFrameY, frame.width, frame.height);
-							}
-						}
+			// 		// Initial offset y
+			// 		var offsetY = firstSpacing;
 
-						// Resize group to fit children
-						selectedObject.adjustToFit();
-					} else {
+			// 		// Order sub-layers based on their y position
+			// 		selectedObject.iterate(function(layer) {
+			// 			subLayers.push([layer, layer.frame.y]);
+			// 		});
+			// 		subLayers = subLayers.sort(self.comparator);
 
-						// Fallback message if spacing value is not valid
-						self.showMessage("Invalid spacing value");
-					}
-				} else {
+			// 		// Cycle through layers array and set y position
+			// 		var arrayLength = subLayers.length
+			// 		for (var i = 0; i < arrayLength; i++) {
+			// 			layer = subLayers[i][0]
+			// 			if(layer.name != "Bg") {
+			// 				frame = layer.frame
+			// 				newFrameY = offsetY
+			// 				offsetY = newFrameY + frame.height + spacing
+			// 				layer.frame = new self.sketch.Rectangle(frame.x,newFrameY,frame.width,frame.height)
+			// 			}
+			// 		}
 
-					// Fallback message if selcted object is not a group
-					self.showMessage("You must select a group");
-				}
-			}
+			// 		// Resize group to fit children
+			// 		selectedObject.adjustToFit();
+
+			// 	} else {
+
+			// 		// Fallback message if spacing value is not valid
+			// 		self.showMessage("Invalid spacing value");
+
+			// 	}
+
+			// } else {
+
+			// 	// Fallback message if selcted object is not a group
+			// 	self.showMessage("You must select a group");
+
+			// }
+
+
+			// --------------------------------------------------------
+			// SERVICE FUNCTIONS
+			// --------------------------------------------------------
 
 			return spacing;
 		}()
-
-		// --------------------------------------------------------
-		// SERVICE FUNCTIONS
-		// --------------------------------------------------------
-
 	}, {
 		key: "showMessage",
 		value: function () {
