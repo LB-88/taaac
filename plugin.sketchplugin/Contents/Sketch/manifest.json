@@ -15,6 +15,12 @@
       "identifier": "super-spacing"
     },
     {
+      "script": "dialog.js",
+      "shortcut": "command shift k",
+      "name": "Super dialog",
+      "identifier": "super-dialog"
+    },
+    {
       "script": "taaac.js",
       "name": "Taaac",
       "handlers": {
@@ -28,7 +34,8 @@
     "title": "Taaac",
     "items": [
       "super-padding",
-      "super-spacing"
+      "super-spacing",
+      "super-dialog"
     ]
   },
   "version": "0.1.0",

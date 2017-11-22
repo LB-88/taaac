@@ -18,6 +18,41 @@ export default class Utils {
 
 
 	// --------------------------------------------------------
+	// DIALOG WINDOW
+	// --------------------------------------------------------
+
+	createWindow() {
+		// Setup the window
+		var alert = COSAlertWindow.new();
+		alert.setMessageText("Configure Taaac")
+		alert.addButtonWithTitle("Ok");
+		alert.addButtonWithTitle("Cancel");
+
+		// Create the main view
+		var viewWidth = 400;
+		var viewHeight = 300;
+		var viewSpacer = 10;
+		var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
+		alert.addAccessoryView(view);
+
+		var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
+		alert.addAccessoryView(view);
+
+		// Show the dialog
+		return [alert]
+	}
+
+
+	settings(context) {
+		var window = this.createWindow()
+		var alert = window[0]
+		var response = alert.runModal() // This part shows the dialog windows and stores the 'response' in a variable
+	}
+
+
+
+
+	// --------------------------------------------------------
 	// VALIDATION FUNCTIONS
 	// --------------------------------------------------------
 
@@ -164,7 +199,7 @@ export default class Utils {
 
 					// If selected object is symbol use old API to set vars else use new API
 					if (layerClass == "MSSymbolInstance") {
-						
+
 						var object = layer.sketchObject,
 							objectRect = object.absoluteRect(),
 							objectWidth = objectRect.width(),
@@ -371,10 +406,10 @@ export default class Utils {
 
 						// If first child has avoid padding set remove initial offset
 						if (firstSubLayer) {
-							if (self.isAvoidPaddingSet(layer)) offsetY = 0
+							if ((layerClass != "MSSymbolInstance") && (self.isAvoidPaddingSet(layer))) { offsetY = 0 }
 							firstSubLayer = false
 						}
-						
+
 						// Set new object y to previous offset
 						newObjectY = offsetY
 
@@ -389,7 +424,7 @@ export default class Utils {
 							objectRect.height = subLayers[i][4]
 
 						} else {
-							
+
 							layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4])
 
 						}
@@ -397,7 +432,7 @@ export default class Utils {
 						offsetY = newObjectY + subLayers[i][4] + spacing
 
 					}
-						
+
 				}
 
 				// Resize group to fit children

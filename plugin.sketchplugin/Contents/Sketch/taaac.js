@@ -140,10 +140,52 @@ var Utils = function () {
 	}
 
 	// --------------------------------------------------------
-	// VALIDATION FUNCTIONS
+	// DIALOG WINDOW
 	// --------------------------------------------------------
 
 	_createClass(Utils, [{
+		key: "createWindow",
+		value: function () {
+			function createWindow() {
+				// Setup the window
+				var alert = COSAlertWindow["new"]();
+				alert.setMessageText("Configure Taaac");
+				alert.addButtonWithTitle("Ok");
+				alert.addButtonWithTitle("Cancel");
+
+				// Create the main view
+				var viewWidth = 400;
+				var viewHeight = 300;
+				var viewSpacer = 10;
+				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
+				alert.addAccessoryView(view);
+
+				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
+				alert.addAccessoryView(view);
+
+				// Show the dialog
+				return [alert];
+			}
+
+			return createWindow;
+		}()
+	}, {
+		key: "settings",
+		value: function () {
+			function settings(context) {
+				var window = this.createWindow();
+				var alert = window[0];
+				var response = alert.runModal(); // This part shows the dialog windows and stores the 'response' in a variable
+			}
+
+			return settings;
+		}()
+
+		// --------------------------------------------------------
+		// VALIDATION FUNCTIONS
+		// --------------------------------------------------------
+
+	}, {
 		key: "isPaddingSet",
 		value: function () {
 			function isPaddingSet(selectedObject) {
@@ -518,7 +560,9 @@ var Utils = function () {
 
 								// If first child has avoid padding set remove initial offset
 								if (firstSubLayer) {
-									if (self.isAvoidPaddingSet(layer)) offsetY = 0;
+									if (layerClass != "MSSymbolInstance" && self.isAvoidPaddingSet(layer)) {
+										offsetY = 0;
+									}
 									firstSubLayer = false;
 								}
 

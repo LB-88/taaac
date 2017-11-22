@@ -9,8 +9,12 @@ export default function(context) {
 	// Iterate through selected objects
 	utils.selection.iterate(function(selectedObject) {
 
-		utils.padding(selectedObject)
+		if (selectedObject.isGroup) {
+			utils.settings(context)
+		} else {
+			// Fallback message if selcted object is not a group
+			self.showMessage("You must select a group")
+		}
 
 	})
-
 }
