@@ -140,11 +140,24 @@ var Utils = function () {
 				var viewWidth = 400;
 				var viewHeight = 300;
 				var viewSpacer = 10;
-				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
-				alert.addAccessoryView(view);
 
 				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
 				alert.addAccessoryView(view);
+
+				// Create labels
+				var infoLabel = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, viewWidth - 100, 35));
+				var horizontalLabel = NSTextField.alloc().initWithFrame(NSMakeRect(-1, viewHeight - 65, viewWidth / 2 - 10, 20));
+				var verticalLabel = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 65, viewWidth / 2 - 10, 20));
+				var flipLabel = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 210, viewWidth - 100, 20));
+
+				// Configure labels
+				infoLabel.setStringValue("Your confetti is distributed in a grid. Setup your grid to get the results you're looking for.");
+				infoLabel.setSelectable(false);
+				infoLabel.setEditable(false);
+				infoLabel.setBezeled(false);
+				infoLabel.setDrawsBackground(false);
+
+				view.addSubview(infoLabel);
 
 				// Show the dialog
 				return [alert];
