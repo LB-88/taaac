@@ -12,6 +12,7 @@ export default class Utils {
 		this.document = this.sketch.selectedDocument
 		this.doc = context.document
 		this.objectsToUpdate = new Array()
+		this.command = context.command
 	}
 
 
@@ -23,34 +24,68 @@ export default class Utils {
 
 	createWindow() {
 		// Setup the window
-		var alert = COSAlertWindow.new();
+		var alert = COSAlertWindow.new()
 		alert.setMessageText("Configure Taaac")
-		alert.addButtonWithTitle("Ok");
-		alert.addButtonWithTitle("Cancel");
+		alert.addButtonWithTitle("Ok")
+		alert.addButtonWithTitle("Cancel")
 
 		// Create the main view
-		var viewWidth = 400;
-		var viewHeight = 300;
-		var viewSpacer = 10;
+		var viewWidth = 400,
+			viewHeight = 150,
+			viewSpacer = 10
 
-		var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
-		alert.addAccessoryView(view);
+		var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight))
+		alert.addAccessoryView(view)
 
 
 		// Create labels
-		var infoLabel = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, (viewWidth - 100), 35));
-		var horizontalLabel = NSTextField.alloc().initWithFrame(NSMakeRect(-1, viewHeight - 65, (viewWidth / 2) - 10, 20));
-		var verticalLabel = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 65, (viewWidth / 2) - 10, 20));
-		var flipLabel = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 210, (viewWidth - 100), 20));
+		var description = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, (viewWidth - 100), 35))
+		var paddingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(-1, viewHeight - 65, (viewWidth / 2) - 10, 20))
+		var spacingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 65, (viewWidth / 2) - 10, 20))
 
 		// Configure labels
-  infoLabel.setStringValue("Your confetti is distributed in a grid. Setup your grid to get the results you're looking for.");
-  infoLabel.setSelectable(false);
-  infoLabel.setEditable(false);
-  infoLabel.setBezeled(false);
-  infoLabel.setDrawsBackground(false);
+		description.setStringValue('Set values for padding and spacing. Check "Auto update" to refresh Taaac on selection change.')
+		description.setSelectable(false)
+		description.setEditable(false)
+		description.setBezeled(false)
+		description.setDrawsBackground(false)
 
-		view.addSubview(infoLabel);
+		paddingLabel.setStringValue("Padding")
+		paddingLabel.setSelectable(false)
+		paddingLabel.setEditable(false)
+		paddingLabel.setBezeled(false)
+		paddingLabel.setDrawsBackground(false)
+
+		spacingLabel.setStringValue("Spacing")
+		spacingLabel.setSelectable(false)
+		spacingLabel.setEditable(false)
+		spacingLabel.setBezeled(false)
+		spacingLabel.setDrawsBackground(false)
+
+		// Add labels
+		view.addSubview(description)
+		view.addSubview(paddingLabel)
+		view.addSubview(spacingLabel)
+
+		// Create textfields
+		paddingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 85, 130, 20))
+		spacingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 85, 130, 20))
+
+		// Add textfields
+		view.addSubview(paddingTextField)
+		view.addSubview(spacingTextField)
+
+		// Create checkboxes
+		autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 125, viewWidth - viewSpacer, 20))
+
+		// Configure checkboxes
+		autoUpdateCheckbox.setButtonType(NSSwitchButton)
+		autoUpdateCheckbox.setBezelStyle(0)
+		autoUpdateCheckbox.setTitle("Auto update")
+		autoUpdateCheckbox.setState(NSOnState)
+
+		// Add checkboxes
+		view.addSubview(autoUpdateCheckbox)
 
 		// Show the dialog
 		return [alert]
@@ -144,6 +179,10 @@ export default class Utils {
 			var firstInit = true,
 				paddingString = '',
 				padding = []
+
+			// Command to add values to layer
+			// log(self.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac'))
+			// self.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
 
 			// Check if padding is set or ask for the user to insert padding
 			if (!self.isPaddingSet(selectedObject)) {

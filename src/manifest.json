@@ -1,4 +1,6 @@
 {
+	"name" : "Taaac",
+    "identifier" : "taaac",
 	"compatibleVersion": 3,
 	"bundleVersion": 1,
 	"commands": [
