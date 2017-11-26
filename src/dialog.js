@@ -10,7 +10,7 @@ export default function(context) {
 	utils.selection.iterate(function(selectedObject) {
 
 		if (selectedObject.isGroup) {
-			utils.settings(context)
+			utils.settings(selectedObject)
 		} else {
 			// Fallback message if selcted object is not a group
 			self.showMessage("You must select a group")

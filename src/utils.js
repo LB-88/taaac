@@ -91,11 +91,42 @@ export default class Utils {
 		return [alert]
 	}
 
+	getUserInput(response, selectedObject) {
 
-	settings(context) {
+		// Check if user clicked on Ok button
+		if (response == "1000") {
+
+			// Get values from fields
+			var paddingString = paddingTextField.stringValue()
+			var spacingString = spacingTextField.stringValue()
+			var autoUpdate = autoUpdateCheckbox.stringValue()
+
+			// Validate and store values
+			if (this.validatePadding(spacingString)) {
+				this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac')
+			}
+			if (this.validatePadding(paddingString)) {
+				this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
+			}
+			this.command.setValue_forKey_onLayer_forPluginIdentifier(autoUpdate, 'autoUpdate', selectedObject.sketchObject, 'taaac')
+			
+			// Log variables
+			log('Padding: ' + this.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac'))
+			log('Spacing: ' + this.command.valueForKey_onLayer_forPluginIdentifier('spacing', selectedObject.sketchObject, 'taaac'))
+			log('Auto update: ' + this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac'))
+		}
+	}
+
+
+	settings(selectedObject) {
 		var window = this.createWindow()
 		var alert = window[0]
-		var response = alert.runModal() // This part shows the dialog windows and stores the 'response' in a variable
+		
+		// Show dialog window and store the 'response' in a variable
+		var response = alert.runModal()
+
+		// Get user input and store it in selected object
+		this.getUserInput(response, selectedObject)
 	}
 
 
@@ -179,10 +210,6 @@ export default class Utils {
 			var firstInit = true,
 				paddingString = '',
 				padding = []
-
-			// Command to add values to layer
-			// log(self.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac'))
-			// self.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
 
 			// Check if padding is set or ask for the user to insert padding
 			if (!self.isPaddingSet(selectedObject)) {
