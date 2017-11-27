@@ -141,13 +141,14 @@ var Utils = function () {
 	}
 
 	// --------------------------------------------------------
-	// DIALOG WINDOW
+	// CREATE DIALOG WINDOW
 	// --------------------------------------------------------
 
 	_createClass(Utils, [{
-		key: "createWindow",
+		key: "createDialog",
 		value: function () {
-			function createWindow() {
+			function createDialog(selectedObject) {
+
 				// Setup the window
 				var alert = COSAlertWindow["new"]();
 				alert.setMessageText("Configure Taaac");
@@ -195,10 +196,6 @@ var Utils = function () {
 				paddingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 85, 130, 20));
 				spacingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 85, 130, 20));
 
-				// Add textfields
-				view.addSubview(paddingTextField);
-				view.addSubview(spacingTextField);
-
 				// Create checkboxes
 				autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 125, viewWidth - viewSpacer, 20));
 
@@ -208,19 +205,49 @@ var Utils = function () {
 				autoUpdateCheckbox.setTitle("Auto update");
 				autoUpdateCheckbox.setState(NSOnState);
 
-				// Add checkboxes
+				// Add fields
+				view.addSubview(paddingTextField);
+				view.addSubview(spacingTextField);
 				view.addSubview(autoUpdateCheckbox);
+
+				// Get selected object values
+				var isTaaacSetValue = this.command.valueForKey_onLayer_forPluginIdentifier('isTaaacSet', selectedObject.sketchObject, 'taaac');
+				if (isTaaacSetValue) {
+					var paddingValue = this.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac');
+					var spacingValue = this.command.valueForKey_onLayer_forPluginIdentifier('spacing', selectedObject.sketchObject, 'taaac');
+					var autoUpdateValue = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac');
+
+					// If values are not null set fields values
+					if (paddingValue != "") {
+						paddingTextField.setStringValue(paddingValue);
+					}
+					if (spacingValue != "") {
+						spacingTextField.setStringValue(spacingValue);
+					}
+					if (autoUpdateValue != "") {
+						if (autoUpdateValue == "1") {
+							autoUpdateCheckbox.setState(NSOnState);
+						} else {
+							autoUpdateCheckbox.setState(NSOffState);
+						}
+					}
+				}
 
 				// Show the dialog
 				return [alert];
 			}
 
-			return createWindow;
+			return createDialog;
 		}()
+
+		// --------------------------------------------------------
+		// STORE DIALOG WINDOW INPUT
+		// --------------------------------------------------------
+
 	}, {
-		key: "getUserInput",
+		key: "storeDialogInput",
 		value: function () {
-			function getUserInput(response, selectedObject) {
+			function storeDialogInput(response, selectedObject) {
 
 				// Check if user clicked on Ok button
 				if (response == "1000") {
@@ -229,40 +256,49 @@ var Utils = function () {
 					var paddingString = paddingTextField.stringValue();
 					var spacingString = spacingTextField.stringValue();
 					var autoUpdate = autoUpdateCheckbox.stringValue();
+					var isTaaacSet = true;
+					if (spacingString == "" && paddingString == "") {
+						isTaaacSet = false;
+					}
 
 					// Validate and store values
-					if (this.validatePadding(spacingString)) {
+					this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac');
+					if (spacingString == "") {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac');
+					} else if (this.validatePadding(spacingString)) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac');
 					}
-					if (this.validatePadding(paddingString)) {
+					if (paddingString == "") {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac');
+					} else if (this.validatePadding(paddingString)) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac');
 					}
 					this.command.setValue_forKey_onLayer_forPluginIdentifier(autoUpdate, 'autoUpdate', selectedObject.sketchObject, 'taaac');
-
-					// Log variables
-					log('Padding: ' + this.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac'));
-					log('Spacing: ' + this.command.valueForKey_onLayer_forPluginIdentifier('spacing', selectedObject.sketchObject, 'taaac'));
-					log('Auto update: ' + this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac'));
 				}
 			}
 
-			return getUserInput;
+			return storeDialogInput;
 		}()
+
+		// --------------------------------------------------------
+		// SHOW DIALOG WINDOW AND STORE VALUES
+		// --------------------------------------------------------
+
 	}, {
-		key: "settings",
+		key: "showDialog",
 		value: function () {
-			function settings(selectedObject) {
-				var window = this.createWindow();
+			function showDialog(selectedObject) {
+				var window = this.createDialog(selectedObject);
 				var alert = window[0];
 
 				// Show dialog window and store the 'response' in a variable
 				var response = alert.runModal();
 
 				// Get user input and store it in selected object
-				this.getUserInput(response, selectedObject);
+				this.storeDialogInput(response, selectedObject);
 			}
 
-			return settings;
+			return showDialog;
 		}()
 
 		// --------------------------------------------------------
@@ -371,173 +407,138 @@ var Utils = function () {
 			function padding(selectedObject) {
 				var self = this;
 
-				// Check if selectedObject is a group
-				if (selectedObject.isGroup) {
+				var firstInit = true;
+				var paddingString = this.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac');
+				var padding = paddingString.split(" ");
 
-					var firstInit = true,
-					    paddingString = '',
-					    padding = [];
+				log(paddingString + ' ' + padding);
 
-					// Check if padding is set or ask for the user to insert padding
-					if (!self.isPaddingSet(selectedObject)) {
-
-						// Ask user to insert padding
-						paddingString = self.sketch.getStringFromUser('Insert separated padding values (es. 16 16 16 16).', '');
-
-						// If padding is valid print padding in group name
-						if (self.validatePadding(paddingString)) {
-							selectedObject.name = selectedObject.name + ' p[' + paddingString + ']';
-						}
-					} else {
-
-						// If padding is not set get padding values from layer name
-						paddingString = selectedObject.name.split("p[")[1].split("]")[0];
-					}
-
-					// If padding string is valid transform into array
-					if (self.validatePadding(paddingString)) {
-						padding = paddingString.split(" ");
-					}
-
-					// If padding is valid execute plugin
-					if (padding.length > 0 && padding.length <= 4) {
-
-						// Assign padding values based on input format
-						if (padding.length == 1) {
-							var paddingT = Number(padding[0]),
-							    paddingR = Number(padding[0]),
-							    paddingB = Number(padding[0]),
-							    paddingL = Number(padding[0]);
-						} else if (padding.length == 2) {
-							var paddingT = Number(padding[0]),
-							    paddingR = Number(padding[1]),
-							    paddingB = Number(padding[0]),
-							    paddingL = Number(padding[1]);
-						} else if (padding.length == 3) {
-							var paddingT = Number(padding[0]),
-							    paddingR = Number(padding[1]),
-							    paddingB = Number(padding[2]),
-							    paddingL = Number(padding[1]);
-						} else if (padding.length == 4) {
-							var paddingT = Number(padding[0]),
-							    paddingR = Number(padding[1]),
-							    paddingB = Number(padding[2]),
-							    paddingL = Number(padding[3]);
-						}
-
-						// Set vars
-						var firstChild = true,
-						    bgCount = 0,
-						    wrapperX = 0,
-						    wrapperY = 0,
-						    wrapperWidth = 0,
-						    wrapperHeight = 0,
-						    groupFrame = selectedObject.frame,
-						    groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
-						    groupAbsoluteXpos = groupAbsoluteRect.x(),
-						    groupAbsoluteYpos = groupAbsoluteRect.y();
-
-						// Iterate through object sub-layers and get content dimensions excluding background
-						selectedObject.iterate(function (layer) {
-
-							// Get layer class name
-							var layerClass = layer.sketchObject["class"]();
-
-							// If selected object is symbol use old API to set vars else use new API
-							if (layerClass == "MSSymbolInstance") {
-
-								var object = layer.sketchObject,
-								    objectRect = object.absoluteRect(),
-								    objectWidth = objectRect.width(),
-								    objectHeight = objectRect.height(),
-								    objectX = objectRect.x() - groupAbsoluteXpos,
-								    objectY = objectRect.y() - groupAbsoluteYpos;
-							} else {
-
-								var object = layer,
-								    objectRect = layer.frame,
-								    objectWidth = objectRect.width,
-								    objectHeight = objectRect.height,
-								    objectX = objectRect.x,
-								    objectY = objectRect.y;
-							}
-
-							// Check if sub-layer has avoid padding set
-							if (self.isAvoidPaddingSet(layer)) {
-								objectX = objectX + paddingL;
-								objectY = objectY + paddingT;
-								objectWidth = objectWidth - paddingL - paddingR;
-								objectHeight = objectHeight - paddingT - paddingB;
-							}
-
-							// Check if sub-layer is not background
-							if (layer.name != "Bg") {
-
-								// If first child assign variables else calulate new frame position and dimension
-								if (firstChild) {
-
-									wrapperX = objectX;
-									wrapperY = objectY;
-									wrapperWidth = objectWidth;
-									wrapperHeight = objectHeight;
-									firstChild = false;
-								} else {
-
-									if (objectX < wrapperX) {
-										deltaX = wrapperX - objectX;
-										wrapperX = objectX;
-										wrapperWidth = wrapperWidth + deltaX;
-									}
-
-									if (objectY < wrapperY) {
-										deltaY = wrapperY - objectY;
-										wrapperY = objectY;
-										wrapperHeight = wrapperHeight + deltaY;
-									}
-
-									if (objectX + objectWidth > wrapperX + wrapperWidth) {
-										wrapperWidth = objectX + objectWidth - wrapperX;
-									}
-									if (objectY + objectHeight > wrapperY + wrapperHeight) {
-										wrapperHeight = objectY + objectHeight - wrapperY;
-									}
-								}
-							}
-						});
-
-						// Calculate background dimensions
-						backgroundX = wrapperX - paddingL;
-						backgroundY = wrapperY - paddingT;
-						backgroundWidth = wrapperWidth + paddingL + paddingR;
-						backgroundHeight = wrapperHeight + paddingT + paddingB;
-
-						// Get group background and set its dimensions and position
-						selectedObject.iterate(function (layer) {
-							if (layer.name == "Bg") {
-								bgCount++;
-								layer.frame = new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight);
-							}
-						});
-
-						// If there's no background create one
-						if (!bgCount) {
-							newLayer = selectedObject.newShape({ frame: new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight), name: "Bg" });
-							newLayer.addToSelection();
-							newLayer.moveToBack();
-						}
-
-						// Resize group to fit children
-						selectedObject.adjustToFit();
-					} else {
-
-						// Fallback message if padding value is not valid
-						self.showMessage("Invalid padding value");
-					}
-				} else {
-
-					// Fallback message if selcted object is not a group
-					self.showMessage("You must select a group");
+				// Assign padding values based on input format
+				if (padding.length == 1) {
+					var paddingT = Number(padding[0]),
+					    paddingR = Number(padding[0]),
+					    paddingB = Number(padding[0]),
+					    paddingL = Number(padding[0]);
+				} else if (padding.length == 2) {
+					var paddingT = Number(padding[0]),
+					    paddingR = Number(padding[1]),
+					    paddingB = Number(padding[0]),
+					    paddingL = Number(padding[1]);
+				} else if (padding.length == 3) {
+					var paddingT = Number(padding[0]),
+					    paddingR = Number(padding[1]),
+					    paddingB = Number(padding[2]),
+					    paddingL = Number(padding[1]);
+				} else if (padding.length == 4) {
+					var paddingT = Number(padding[0]),
+					    paddingR = Number(padding[1]),
+					    paddingB = Number(padding[2]),
+					    paddingL = Number(padding[3]);
 				}
+
+				// Set vars
+				var firstChild = true,
+				    bgCount = 0,
+				    wrapperX = 0,
+				    wrapperY = 0,
+				    wrapperWidth = 0,
+				    wrapperHeight = 0,
+				    groupFrame = selectedObject.frame,
+				    groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
+				    groupAbsoluteXpos = groupAbsoluteRect.x(),
+				    groupAbsoluteYpos = groupAbsoluteRect.y();
+
+				// Iterate through object sub-layers and get content dimensions excluding background
+				selectedObject.iterate(function (layer) {
+
+					// Get layer class name
+					var layerClass = layer.sketchObject["class"]();
+
+					// If selected object is symbol use old API to set vars else use new API
+					if (layerClass == "MSSymbolInstance") {
+
+						var object = layer.sketchObject,
+						    objectRect = object.absoluteRect(),
+						    objectWidth = objectRect.width(),
+						    objectHeight = objectRect.height(),
+						    objectX = objectRect.x() - groupAbsoluteXpos,
+						    objectY = objectRect.y() - groupAbsoluteYpos;
+					} else {
+
+						var object = layer,
+						    objectRect = layer.frame,
+						    objectWidth = objectRect.width,
+						    objectHeight = objectRect.height,
+						    objectX = objectRect.x,
+						    objectY = objectRect.y;
+					}
+
+					// Check if sub-layer has avoid padding set
+					if (self.isAvoidPaddingSet(layer)) {
+						objectX = objectX + paddingL;
+						objectY = objectY + paddingT;
+						objectWidth = objectWidth - paddingL - paddingR;
+						objectHeight = objectHeight - paddingT - paddingB;
+					}
+
+					// Check if sub-layer is not background
+					if (layer.name != "Bg") {
+
+						// If first child assign variables else calulate new frame position and dimension
+						if (firstChild) {
+
+							wrapperX = objectX;
+							wrapperY = objectY;
+							wrapperWidth = objectWidth;
+							wrapperHeight = objectHeight;
+							firstChild = false;
+						} else {
+
+							if (objectX < wrapperX) {
+								deltaX = wrapperX - objectX;
+								wrapperX = objectX;
+								wrapperWidth = wrapperWidth + deltaX;
+							}
+
+							if (objectY < wrapperY) {
+								deltaY = wrapperY - objectY;
+								wrapperY = objectY;
+								wrapperHeight = wrapperHeight + deltaY;
+							}
+
+							if (objectX + objectWidth > wrapperX + wrapperWidth) {
+								wrapperWidth = objectX + objectWidth - wrapperX;
+							}
+							if (objectY + objectHeight > wrapperY + wrapperHeight) {
+								wrapperHeight = objectY + objectHeight - wrapperY;
+							}
+						}
+					}
+				});
+
+				// Calculate background dimensions
+				backgroundX = wrapperX - paddingL;
+				backgroundY = wrapperY - paddingT;
+				backgroundWidth = wrapperWidth + paddingL + paddingR;
+				backgroundHeight = wrapperHeight + paddingT + paddingB;
+
+				// Get group background and set its dimensions and position
+				selectedObject.iterate(function (layer) {
+					if (layer.name == "Bg") {
+						bgCount++;
+						layer.frame = new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight);
+					}
+				});
+
+				// If there's no background create one
+				if (!bgCount) {
+					newLayer = selectedObject.newShape({ frame: new self.sketch.Rectangle(backgroundX, backgroundY, backgroundWidth, backgroundHeight), name: "Bg" });
+					newLayer.addToSelection();
+					newLayer.moveToBack();
+				}
+
+				// Resize group to fit children
+				selectedObject.adjustToFit();
 			}
 
 			return padding;
