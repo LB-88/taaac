@@ -9,7 +9,11 @@ export default function(context) {
 	// Iterate through selected objects
 	utils.selection.iterate(function(selectedObject) {
 
-		utils.spacing(selectedObject)
+		if (selectedObject.isGroup) {
+			log('enter')
+		} else {
+
+		}
 
 	})
 

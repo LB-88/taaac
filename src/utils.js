@@ -23,7 +23,7 @@ export default class Utils {
 	// --------------------------------------------------------
 
 	createDialog(selectedObject) {
-		
+
 		// Setup the window
 		var alert = COSAlertWindow.new()
 		alert.setMessageText("Configure Taaac")
@@ -92,12 +92,14 @@ export default class Utils {
 			var spacingValue = this.command.valueForKey_onLayer_forPluginIdentifier('spacing', selectedObject.sketchObject, 'taaac')
 			var autoUpdateValue = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac')
 
-			// If values are not null set fields values
-			if (paddingValue!="") {
-				paddingTextField.setStringValue(paddingValue)
-			}
+			// If values are not null set fields values and call functions
 			if (spacingValue!="") {
 				spacingTextField.setStringValue(spacingValue)
+				this.spacing(selectedObject)
+			}
+			if (paddingValue!="") {
+				paddingTextField.setStringValue(paddingValue)
+				this.padding(selectedObject)
 			}
 			if (autoUpdateValue!="") {
 				if (autoUpdateValue=="1") {
@@ -140,11 +142,13 @@ export default class Utils {
 				this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac')
 			} else if (this.validatePadding(spacingString)) {
 				this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac')
+				this.spacing(selectedObject)
 			}
 			if (paddingString=="") {
 				this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac')
 			} else if (this.validatePadding(paddingString)) {
 				this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
+				this.padding(selectedObject)
 			}
 			this.command.setValue_forKey_onLayer_forPluginIdentifier(autoUpdate, 'autoUpdate', selectedObject.sketchObject, 'taaac')
 		}
@@ -160,7 +164,7 @@ export default class Utils {
 	showDialog(selectedObject) {
 		var window = this.createDialog(selectedObject)
 		var alert = window[0]
-		
+
 		// Show dialog window and store the 'response' in a variable
 		var response = alert.runModal()
 
@@ -241,48 +245,56 @@ export default class Utils {
 	// --------------------------------------------------------
 
 	padding(selectedObject) {
+
+		// Set vars
 		var self = this
-
 		var firstInit = true
-		var paddingString = this.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac')
-		var padding = paddingString.split(" ")
+		var paddingString = self.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac')
+		var paddingT = 0
+		var paddingR = 0
+		var paddingB = 0
+		var paddingL = 0
 
-		log(paddingString + ' ' + padding)
+		log(paddingString)
 
-		// Assign padding values based on input format
-		if (padding.length == 1) {
-			var paddingT = Number(padding[0]),
-				paddingR = Number(padding[0]),
-				paddingB = Number(padding[0]),
+		if (paddingString!="") {
+			var padding = paddingString.split(" ")
+
+			// Assign padding values based on input format
+			if (padding.length == 1) {
+				paddingT = Number(padding[0])
+				paddingR = Number(padding[0])
+				paddingB = Number(padding[0])
 				paddingL = Number(padding[0])
-		} else if (padding.length == 2) {
-			var paddingT = Number(padding[0]),
-				paddingR = Number(padding[1]),
-				paddingB = Number(padding[0]),
+			} else if (padding.length == 2) {
+				paddingT = Number(padding[0])
+				paddingR = Number(padding[1])
+				paddingB = Number(padding[0])
 				paddingL = Number(padding[1])
-		} else if (padding.length == 3) {
-			var paddingT = Number(padding[0]),
-				paddingR = Number(padding[1]),
-				paddingB = Number(padding[2]),
+			} else if (padding.length == 3) {
+				paddingT = Number(padding[0])
+				paddingR = Number(padding[1])
+				paddingB = Number(padding[2])
 				paddingL = Number(padding[1])
-		} else if (padding.length == 4) {
-			var paddingT = Number(padding[0]),
-				paddingR = Number(padding[1]),
-				paddingB = Number(padding[2]),
+			} else if (padding.length == 4) {
+				paddingT = Number(padding[0])
+				paddingR = Number(padding[1])
+				paddingB = Number(padding[2])
 				paddingL = Number(padding[3])
+			}
 		}
 
 		// Set vars
-		var firstChild = true,
-			bgCount = 0,
-			wrapperX = 0,
-			wrapperY = 0,
-			wrapperWidth = 0,
-			wrapperHeight = 0,
-			groupFrame = selectedObject.frame,
-			groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
-			groupAbsoluteXpos = groupAbsoluteRect.x(),
-			groupAbsoluteYpos = groupAbsoluteRect.y()
+		var firstChild = true
+		var bgCount = 0
+		var wrapperX = 0
+		var wrapperY = 0
+		var wrapperWidth = 0
+		var wrapperHeight = 0
+		var groupFrame = selectedObject.frame
+		var groupAbsoluteRect = selectedObject.sketchObject.absoluteRect()
+		var groupAbsoluteXpos = groupAbsoluteRect.x()
+		var groupAbsoluteYpos = groupAbsoluteRect.y()
 
 		// Iterate through object sub-layers and get content dimensions excluding background
 		selectedObject.iterate(function(layer) {
@@ -354,7 +366,7 @@ export default class Utils {
 				}
 			}
 
-		});
+		})
 
 		// Calculate background dimensions
 		backgroundX = wrapperX - paddingL
@@ -390,146 +402,108 @@ export default class Utils {
 	// --------------------------------------------------------
 
 	spacing(selectedObject) {
+
+		// Set vars
 		var self = this
+		var paddingString = self.command.valueForKey_onLayer_forPluginIdentifier('padding', selectedObject.sketchObject, 'taaac')
+		var spacingString = self.command.valueForKey_onLayer_forPluginIdentifier('spacing', selectedObject.sketchObject, 'taaac')
+		var spacing = -1
+		var firstSpacing = 0
+		var subLayers = []
+		var offsetY = 0
 
-		var spacingString = '',
-			spacing = -1,
-			firstSpacing = 0,
-			subLayers = [],
-			offsetY = 0
+		// Transform spacing into number
+		spacing = Number(spacingString)
 
-		// Check if selectedObject is a group
-		if (selectedObject.isGroup) {
+		// Check if padding was set and add padding to first spacing
+		if (paddingString!="") {
+			padding = paddingString.split(" ")
+			firstSpacing = Number(padding[0])
+		}
 
+		// Set vars
+		var offsetY = firstSpacing,
+			groupFrame = selectedObject.frame,
+			groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
+			groupAbsoluteXpos = groupAbsoluteRect.x(),
+			groupAbsoluteYpos = groupAbsoluteRect.y()
 
-			// Check if spacing is set or ask for the user to insert spacing
-			if (!self.isSpacingSet(selectedObject)) {
+		// Order sub-layers based on their y position
+		selectedObject.iterate(function(layer) {
 
-				// Ask user to insert spacing
-				spacingString = self.sketch.getStringFromUser('Insert spacing value (es. 16).', '')
+			// Get layer class name
+			var layerClass = layer.sketchObject.class()
 
-				// If spacing is valid print spacing in group name
-				if (self.validateSpacing(spacingString)) {
-					selectedObject.name = selectedObject.name + ' s[' + spacingString + ']'
-				}
-
+			// If selected object is symbol use old API to set vars else use new API
+			if (layerClass == "MSSymbolInstance") {
+				var object = layer.sketchObject,
+					objectRect = object.absoluteRect(),
+					objectX = objectRect.x() - groupAbsoluteXpos,
+					objectY = objectRect.y() - groupAbsoluteYpos,
+					objectWidth = objectRect.width(),
+					objectHeight = objectRect.height()
 			} else {
-
-				// If spacing is not set get spacing values from layer name
-				spacingString = selectedObject.name.split("s[")[1].split("]")[0]
+				var object = layer,
+					objectRect = object.frame,
+					objectX = objectRect.x,
+					objectY = objectRect.y,
+					objectWidth = objectRect.width,
+					objectHeight = objectRect.height
 			}
 
-			// If spacing string is valid transform into array
-			if (self.validateSpacing(spacingString)) {
-				spacing = Number(spacingString)
-			}
+			// Push vars into sub layer array
+			subLayers.push([layer, objectX, objectY, objectWidth, objectHeight])
+		})
 
-			// If spacing is valid execute plugin
-			if (spacing>=0) {
+		// Sort sub layers array by object y position
+		subLayers = subLayers.sort(self.comparator)
 
-				// Check if padding was set and add padding to first spacing
-				if (self.isPaddingSet(selectedObject)) {
-					padding = selectedObject.name.split("p[")[1].split("]")[0].split(" ")
-					firstSpacing = Number(padding[0])
+		// Cycle through layers array and set y position
+		var arrayLength = subLayers.length,
+			firstSubLayer = true
+
+		for (var i = 0; i < arrayLength; i++) {
+			var layer = subLayers[i][0]
+
+			// Get layer class name
+			var layerClass = layer.sketchObject.class()
+
+			// Ignore background layer
+			if (layer.name != "Bg") {
+
+				// If first child has avoid padding set remove initial offset
+				if (firstSubLayer) {
+					if ((layerClass != "MSSymbolInstance") && (self.isAvoidPaddingSet(layer))) { offsetY = 0 }
+					firstSubLayer = false
 				}
 
-				// Set vars
-				var offsetY = firstSpacing,
-					groupFrame = selectedObject.frame,
-					groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
-					groupAbsoluteXpos = groupAbsoluteRect.x(),
-					groupAbsoluteYpos = groupAbsoluteRect.y()
+				// Set new object y to previous offset
+				newObjectY = offsetY
 
-				// Order sub-layers based on their y position
-				selectedObject.iterate(function(layer) {
+				// If selected object is symbol use old API to set new values
+				if (layerClass == "MSSymbolInstance") {
 
-					// Get layer class name
-					var layerClass = layer.sketchObject.class()
+					object = layer.sketchObject
+					objectRect = object.absoluteRect()
+					objectRect.x = subLayers[i][1] + groupAbsoluteXpos
+					objectRect.y = newObjectY + groupAbsoluteYpos
+					objectRect.width = subLayers[i][3]
+					objectRect.height = subLayers[i][4]
 
-					// If selected object is symbol use old API to set vars else use new API
-					if (layerClass == "MSSymbolInstance") {
-						var object = layer.sketchObject,
-							objectRect = object.absoluteRect(),
-							objectX = objectRect.x() - groupAbsoluteXpos,
-							objectY = objectRect.y() - groupAbsoluteYpos,
-							objectWidth = objectRect.width(),
-							objectHeight = objectRect.height()
-					} else {
-						var object = layer,
-							objectRect = object.frame,
-							objectX = objectRect.x,
-							objectY = objectRect.y,
-							objectWidth = objectRect.width,
-							objectHeight = objectRect.height
-					}
+				} else {
 
-					// Push vars into sub layer array
-					subLayers.push([layer, objectX, objectY, objectWidth, objectHeight])
-				})
-
-				// Sort sub layers array by object y position
-				subLayers = subLayers.sort(self.comparator)
-
-				// Cycle through layers array and set y position
-				var arrayLength = subLayers.length,
-					firstSubLayer = true
-
-				for (var i = 0; i < arrayLength; i++) {
-					var layer = subLayers[i][0]
-
-					// Get layer class name
-					var layerClass = layer.sketchObject.class()
-
-					// Ignore background layer
-					if (layer.name != "Bg") {
-
-						// If first child has avoid padding set remove initial offset
-						if (firstSubLayer) {
-							if ((layerClass != "MSSymbolInstance") && (self.isAvoidPaddingSet(layer))) { offsetY = 0 }
-							firstSubLayer = false
-						}
-
-						// Set new object y to previous offset
-						newObjectY = offsetY
-
-						// If selected object is symbol use old API to set new values
-						if (layerClass == "MSSymbolInstance") {
-
-							object = layer.sketchObject
-							objectRect = object.absoluteRect()
-							objectRect.x = subLayers[i][1] + groupAbsoluteXpos
-							objectRect.y = newObjectY + groupAbsoluteYpos
-							objectRect.width = subLayers[i][3]
-							objectRect.height = subLayers[i][4]
-
-						} else {
-
-							layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4])
-
-						}
-
-						offsetY = newObjectY + subLayers[i][4] + spacing
-
-					}
+					layer.frame = new self.sketch.Rectangle(subLayers[i][1], newObjectY, subLayers[i][3], subLayers[i][4])
 
 				}
 
-				// Resize group to fit children
-				selectedObject.adjustToFit()
-
-			} else {
-
-				// Fallback message if spacing value is not valid
-				self.showMessage("Invalid spacing value")
+				offsetY = newObjectY + subLayers[i][4] + spacing
 
 			}
-
-		} else {
-
-			// Fallback message if selcted object is not a group
-			self.showMessage("You must select a group")
 
 		}
+
+		// Resize group to fit children
+		selectedObject.adjustToFit()
 	}
 
 

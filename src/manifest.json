@@ -5,22 +5,16 @@
 	"bundleVersion": 1,
 	"commands": [
 		{
-			"script" : "./padding.js",
+			"script" : "./update.js",
 			"shortcut" : "command shift u",
-			"name" : "Super padding",
-			"identifier" : "super-padding"
-		},
-		{
-			"script" : "./spacing.js",
-			"shortcut" : "command shift y",
-			"name" : "Super spacing",
-			"identifier" : "super-spacing"
+			"name" : "Update Taaac",
+			"identifier" : "update-taaac"
 		},
 		{
 			"script" : "./dialog.js",
 			"shortcut" : "command shift k",
-			"name" : "Super dialog",
-			"identifier" : "super-dialog"
+			"name" : "Configure Taaac",
+			"identifier" : "configure-taaac"
 		},
 		{
 			"script" : "./taaac.js",
@@ -35,9 +29,8 @@
 	"menu": {
 		"title": "Taaac",
 		"items": [
-			"super-padding",
-			"super-spacing",
-			"super-dialog"
+			"configure-taaac",
+			"update-taaac"
 		]
 	}
 }
