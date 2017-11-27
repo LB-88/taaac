@@ -9,9 +9,15 @@ export default function(context) {
 	// Iterate through selected objects
 	utils.selection.iterate(function(selectedObject) {
 
+		// Check if selected object is group
 		if (selectedObject.isGroup) {
+
+			// Show dialog
 			utils.showDialog(selectedObject)
+
+		// Else show fallback message
 		} else {
+
 			// Fallback message if selcted object is not a group
 			self.showMessage("You must select a group")
 		}

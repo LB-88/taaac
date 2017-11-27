@@ -15,15 +15,21 @@ export function taaac (context) {
 
 		// Update objects
 		utils.objectsToUpdate.forEach(function(objectToUpdate) {
+
+			// Check if plugin update is set to true
 			if (objectToUpdate.pluginUpdate) {
-				if (utils.isSpacingSet(objectToUpdate.object)) {
+
+				// Check if Taaac is set and auto update is true
+				if ((utils.isTaaacSet(objectToUpdate.object)) && (utils.isAutoUpdateSet(objectToUpdate.object))) {
+
+					// Call spacing and padding functions
 					utils.spacing(objectToUpdate.object)
-				}
-				if (utils.isPaddingSet(objectToUpdate.object)) {
 					utils.padding(objectToUpdate.object)
 				}
+
+			// Else adjust size to fit children
 			} else {
-				objectToUpdate.object.adjustToFit();
+				objectToUpdate.object.adjustToFit()
 			}
 		})
 

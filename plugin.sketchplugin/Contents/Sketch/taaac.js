@@ -98,13 +98,19 @@ function taaac(context) {
 
 		// Update objects
 		utils.objectsToUpdate.forEach(function (objectToUpdate) {
+
+			// Check if plugin update is set to true
 			if (objectToUpdate.pluginUpdate) {
-				if (utils.isSpacingSet(objectToUpdate.object)) {
+
+				// Check if Taaac is set and auto update is true
+				if (utils.isTaaacSet(objectToUpdate.object) && utils.isAutoUpdateSet(objectToUpdate.object)) {
+
+					// Call spacing and padding functions
 					utils.spacing(objectToUpdate.object);
-				}
-				if (utils.isPaddingSet(objectToUpdate.object)) {
 					utils.padding(objectToUpdate.object);
 				}
+
+				// Else adjust size to fit children
 			} else {
 				objectToUpdate.object.adjustToFit();
 			}
@@ -218,15 +224,15 @@ var Utils = function () {
 					var autoUpdateValue = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac');
 
 					// If values are not null set fields values and call functions
-					if (spacingValue != "") {
+					if (spacingValue != "" && spacingValue != null) {
 						spacingTextField.setStringValue(spacingValue);
 						this.spacing(selectedObject);
 					}
-					if (paddingValue != "") {
+					if (paddingValue != "" && paddingValue != null) {
 						paddingTextField.setStringValue(paddingValue);
 						this.padding(selectedObject);
 					}
-					if (autoUpdateValue != "") {
+					if (autoUpdateValue != "" && autoUpdateValue != null) {
 						if (autoUpdateValue == "1") {
 							autoUpdateCheckbox.setState(NSOnState);
 						} else {
@@ -259,19 +265,19 @@ var Utils = function () {
 					var spacingString = spacingTextField.stringValue();
 					var autoUpdate = autoUpdateCheckbox.stringValue();
 					var isTaaacSet = true;
-					if (spacingString == "" && paddingString == "") {
+					if ((spacingString == "" || spacingString == null) && (paddingString == "" || paddingString == null)) {
 						isTaaacSet = false;
 					}
 
 					// Validate and store values
 					this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac');
-					if (spacingString == "") {
+					if (spacingString == "" || spacingString == null) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac');
 					} else if (this.validatePadding(spacingString)) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac');
 						this.spacing(selectedObject);
 					}
-					if (paddingString == "") {
+					if (paddingString == "" || paddingString == null) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac');
 					} else if (this.validatePadding(paddingString)) {
 						this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac');
@@ -310,16 +316,6 @@ var Utils = function () {
 		// --------------------------------------------------------
 
 	}, {
-		key: "isPaddingSet",
-		value: function () {
-			function isPaddingSet(selectedObject) {
-				value = selectedObject.name.split("p[")[1] ? true : false;
-				return value;
-			}
-
-			return isPaddingSet;
-		}()
-	}, {
 		key: "isAvoidPaddingSet",
 		value: function () {
 			function isAvoidPaddingSet(selectedObject) {
@@ -330,24 +326,25 @@ var Utils = function () {
 			return isAvoidPaddingSet;
 		}()
 	}, {
-		key: "isSpacingSet",
+		key: "isTaaacSet",
 		value: function () {
-			function isSpacingSet(selectedObject) {
-				value = selectedObject.name.split("s[")[1] ? true : false;
+			function isTaaacSet(selectedObject) {
+				value = this.command.valueForKey_onLayer_forPluginIdentifier('isTaaacSet', selectedObject.sketchObject, 'taaac') ? true : false;
 				return value;
 			}
 
-			return isSpacingSet;
+			return isTaaacSet;
 		}()
 	}, {
-		key: "isAutoSet",
+		key: "isAutoUpdateSet",
 		value: function () {
-			function isAutoSet(selectedObject) {
-				value = selectedObject.name.split("-t")[1] ? true : false;
+			function isAutoUpdateSet(selectedObject) {
+				autoUpdate = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac');
+				value = autoUpdate == 1 ? true : false;
 				return value;
 			}
 
-			return isAutoSet;
+			return isAutoUpdateSet;
 		}()
 	}, {
 		key: "validatePadding",
@@ -386,7 +383,7 @@ var Utils = function () {
 				};if (selectedObject.isGroup) {
 
 					// If auto update is set change plugin update value
-					if (this.isAutoSet(selectedObject)) {
+					if (this.isAutoUpdateSet(selectedObject)) {
 						objectToAdd.pluginUpdate = true;
 					}
 					this.objectsToUpdate.push(objectToAdd);
@@ -419,9 +416,7 @@ var Utils = function () {
 				var paddingB = 0;
 				var paddingL = 0;
 
-				log(paddingString);
-
-				if (paddingString != "") {
+				if (paddingString != "" && paddingString != null) {
 					var padding = paddingString.split(" ");
 
 					// Assign padding values based on input format
@@ -578,7 +573,7 @@ var Utils = function () {
 				spacing = Number(spacingString);
 
 				// Check if padding was set and add padding to first spacing
-				if (paddingString != "") {
+				if (paddingString != "" && paddingString != null) {
 					padding = paddingString.split(" ");
 					firstSpacing = Number(padding[0]);
 				}
