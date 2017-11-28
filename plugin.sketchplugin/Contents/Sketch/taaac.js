@@ -81,11 +81,11 @@ var _utils = __webpack_require__(1);
 
 var _utils2 = _interopRequireDefault(_utils);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function taaac(context) {
 
-	var utils = new _utils2["default"](context);
+	var utils = new _utils2['default'](context);
 
 	utils.selection = context.actionContext.oldSelection;
 
@@ -105,9 +105,18 @@ function taaac(context) {
 				// Check if Taaac is set and auto update is true
 				if (utils.isTaaacSet(objectToUpdate.object) && utils.isAutoUpdateSet(objectToUpdate.object)) {
 
-					// Call spacing and padding functions
-					utils.spacing(objectToUpdate.object);
-					utils.padding(objectToUpdate.object);
+					var paddingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('padding', objectToUpdate.object.sketchObject, 'taaac');
+					var spacingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('spacing', objectToUpdate.object.sketchObject, 'taaac');
+
+					// If spacing is set call function
+					if (spacingValue != "" && spacingValue != null) {
+						utils.spacing(objectToUpdate.object);
+					}
+
+					// If padding is set call function
+					if (paddingValue != "" && paddingValue != null) {
+						utils.padding(objectToUpdate.object);
+					}
 				}
 
 				// Else adjust size to fit children
@@ -377,10 +386,11 @@ var Utils = function () {
 			function findObjectsToUpdate(selectedObject) {
 
 				// Create object with selected object and plugin update value
-				var objectToAdd = { object: selectedObject, pluginUpdate: false
+				var objectToAdd = { object: selectedObject, pluginUpdate: false };
+				var symbols = new Array();
 
-					// If object is group add it to objects to update
-				};if (selectedObject.isGroup) {
+				// If object is group add it to objects to update
+				if (selectedObject.isGroup) {
 
 					// If auto update is set change plugin update value
 					if (this.isAutoUpdateSet(selectedObject)) {
@@ -389,9 +399,14 @@ var Utils = function () {
 					this.objectsToUpdate.push(objectToAdd);
 				}
 
-				// If selcted object is not symbol and parent is not page call function again
+				// If selected object is not symbol and parent is not page call function again
 				if (selectedObject.sketchObject["class"]() != "MSSymbolInstance" && !selectedObject.container.isPage) {
 					this.findObjectsToUpdate(selectedObject.container);
+				}
+
+				// If selected object is a symbol
+				if (selectedObject.sketchObject["class"]() == "MSSymbolInstance") {
+					symbol = selectedObject.sketchObject.parentGroup();
 				}
 			}
 

@@ -22,9 +22,18 @@ export function taaac (context) {
 				// Check if Taaac is set and auto update is true
 				if ((utils.isTaaacSet(objectToUpdate.object)) && (utils.isAutoUpdateSet(objectToUpdate.object))) {
 
-					// Call spacing and padding functions
-					utils.spacing(objectToUpdate.object)
-					utils.padding(objectToUpdate.object)
+					var paddingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('padding', objectToUpdate.object.sketchObject, 'taaac')
+					var spacingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('spacing', objectToUpdate.object.sketchObject, 'taaac')
+
+					// If spacing is set call function
+					if ((spacingValue!="") && (spacingValue!=null)) {
+						utils.spacing(objectToUpdate.object)
+					}
+
+					// If padding is set call function
+					if ((paddingValue!="") && (paddingValue!=null)) {
+						utils.padding(objectToUpdate.object)
+					}
 				}
 
 			// Else adjust size to fit children

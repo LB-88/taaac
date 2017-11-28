@@ -360,10 +360,11 @@ var Utils = function () {
 			function findObjectsToUpdate(selectedObject) {
 
 				// Create object with selected object and plugin update value
-				var objectToAdd = { object: selectedObject, pluginUpdate: false
+				var objectToAdd = { object: selectedObject, pluginUpdate: false };
+				var symbols = new Array();
 
-					// If object is group add it to objects to update
-				};if (selectedObject.isGroup) {
+				// If object is group add it to objects to update
+				if (selectedObject.isGroup) {
 
 					// If auto update is set change plugin update value
 					if (this.isAutoUpdateSet(selectedObject)) {
@@ -372,9 +373,14 @@ var Utils = function () {
 					this.objectsToUpdate.push(objectToAdd);
 				}
 
-				// If selcted object is not symbol and parent is not page call function again
+				// If selected object is not symbol and parent is not page call function again
 				if (selectedObject.sketchObject["class"]() != "MSSymbolInstance" && !selectedObject.container.isPage) {
 					this.findObjectsToUpdate(selectedObject.container);
+				}
+
+				// If selected object is a symbol
+				if (selectedObject.sketchObject["class"]() == "MSSymbolInstance") {
+					symbol = selectedObject.sketchObject.parentGroup();
 				}
 			}
 
