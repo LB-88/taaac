@@ -218,6 +218,8 @@ export default class Utils {
 		var objectToAdd = {object: selectedObject, pluginUpdate: false}
 		var symbols = new Array()
 
+		log(selectedObject)
+
 		// If object is group add it to objects to update
 		if (selectedObject.isGroup) {
 
@@ -228,15 +230,26 @@ export default class Utils {
 			this.objectsToUpdate.push(objectToAdd)
 		}
 
-		// If selected object is not symbol and parent is not page call function again
-		if ((selectedObject.sketchObject.class() != "MSSymbolInstance") && (!selectedObject.container.isPage)) {
-			this.findObjectsToUpdate(selectedObject.container)
+		// Check type of object
+		if (typeof selectedObject == String) {
+			log('enter1')
+			// sketchClass = selectedObject.class()
+		} else {
+			log('enter2')
+			// sketchClass = selectedObject.sketchObject.class()
 		}
 
-		// If selected object is a symbol
-		if (selectedObject.sketchObject.class() == "MSSymbolInstance") {
-			symbol = selectedObject.sketchObject.parentGroup()
-		}
+		// // If selected object is not symbol and parent is not page call function again
+		// if (sketchClass != "MSSymbolInstance") {
+		// 	if (!selectedObject.container.isPage) {
+		// 		this.findObjectsToUpdate(selectedObject.container)
+		// 	}
+		
+		// // If selected object is a symbol
+		// } else {
+		// 	parentGroup = selectedObject.sketchObject.parentGroup()
+		// 	this.findObjectsToUpdate(parentGroup)
+		// }
 
 
 	}

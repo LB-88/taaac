@@ -11,7 +11,7 @@ export function taaac (context) {
 
 		// Find objects to update including parents
 		utils.objectsToUpdate = new Array()
-		utils.findObjectsToUpdate(selectedObject)
+		utils.findObjectsToUpdate(selectedObject, context)
 
 		// Update objects
 		utils.objectsToUpdate.forEach(function(objectToUpdate) {

@@ -94,7 +94,7 @@ function taaac(context) {
 
 		// Find objects to update including parents
 		utils.objectsToUpdate = new Array();
-		utils.findObjectsToUpdate(selectedObject);
+		utils.findObjectsToUpdate(selectedObject, context);
 
 		// Update objects
 		utils.objectsToUpdate.forEach(function (objectToUpdate) {
@@ -134,6 +134,8 @@ function taaac(context) {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -389,6 +391,8 @@ var Utils = function () {
 				var objectToAdd = { object: selectedObject, pluginUpdate: false };
 				var symbols = new Array();
 
+				log(selectedObject);
+
 				// If object is group add it to objects to update
 				if (selectedObject.isGroup) {
 
@@ -399,15 +403,27 @@ var Utils = function () {
 					this.objectsToUpdate.push(objectToAdd);
 				}
 
-				// If selected object is not symbol and parent is not page call function again
-				if (selectedObject.sketchObject["class"]() != "MSSymbolInstance" && !selectedObject.container.isPage) {
-					this.findObjectsToUpdate(selectedObject.container);
+				// Check type of object
+				if ((typeof selectedObject === "undefined" ? "undefined" : _typeof(selectedObject)) == String) {
+					log('enter1');
+					// sketchClass = selectedObject.class()
+				} else {
+					log('enter2');
+					// sketchClass = selectedObject.sketchObject.class()
 				}
 
-				// If selected object is a symbol
-				if (selectedObject.sketchObject["class"]() == "MSSymbolInstance") {
-					symbol = selectedObject.sketchObject.parentGroup();
-				}
+				// // If selected object is not symbol and parent is not page call function again
+				// if (sketchClass != "MSSymbolInstance") {
+				// 	if (!selectedObject.container.isPage) {
+				// 		this.findObjectsToUpdate(selectedObject.container)
+				// 	}
+
+				// // If selected object is a symbol
+				// } else {
+				// 	parentGroup = selectedObject.sketchObject.parentGroup()
+				// 	this.findObjectsToUpdate(parentGroup)
+				// }
+
 			}
 
 			return findObjectsToUpdate;
