@@ -135,8 +135,6 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -152,7 +150,7 @@ var Utils = function () {
 
 		this.sketch = context.api();
 		this.document = this.sketch.selectedDocument;
-		this.doc = context.document;
+		this.doc = context.document ? context.document : context.actionContext.document;
 		this.objectsToUpdate = new Array();
 		this.command = context.command;
 	}
@@ -330,7 +328,12 @@ var Utils = function () {
 		key: "isAvoidPaddingSet",
 		value: function () {
 			function isAvoidPaddingSet(selectedObject) {
-				value = selectedObject.name.split("p[-")[1] ? true : false;
+				if (selectedObject.name) {
+					name = selectedObject.name;
+				} else {
+					name = selectedObject.sketchObject.name();
+				}
+				value = name.split("(-")[1] ? true : false;
 				return value;
 			}
 
@@ -388,13 +391,10 @@ var Utils = function () {
 			function findObjectsToUpdate(selectedObject) {
 
 				// Create object with selected object and plugin update value
-				var objectToAdd = { object: selectedObject, pluginUpdate: false };
-				var symbols = new Array();
+				var objectToAdd = { object: selectedObject, pluginUpdate: false
 
-				log(selectedObject);
-
-				// If object is group add it to objects to update
-				if (selectedObject.isGroup) {
+					// If object is group add it to objects to update
+				};if (selectedObject.isGroup) {
 
 					// If auto update is set change plugin update value
 					if (this.isAutoUpdateSet(selectedObject)) {
@@ -403,27 +403,12 @@ var Utils = function () {
 					this.objectsToUpdate.push(objectToAdd);
 				}
 
-				// Check type of object
-				if ((typeof selectedObject === "undefined" ? "undefined" : _typeof(selectedObject)) == String) {
-					log('enter1');
-					// sketchClass = selectedObject.class()
-				} else {
-					log('enter2');
-					// sketchClass = selectedObject.sketchObject.class()
+				// If selected object is not symbol and parent is not page call function again
+				if (selectedObject.sketchObject["class"]() == null || selectedObject.sketchObject["class"]() != "MSSymbolInstance") {
+					if (!selectedObject.container.isPage) {
+						this.findObjectsToUpdate(selectedObject.container);
+					}
 				}
-
-				// // If selected object is not symbol and parent is not page call function again
-				// if (sketchClass != "MSSymbolInstance") {
-				// 	if (!selectedObject.container.isPage) {
-				// 		this.findObjectsToUpdate(selectedObject.container)
-				// 	}
-
-				// // If selected object is a symbol
-				// } else {
-				// 	parentGroup = selectedObject.sketchObject.parentGroup()
-				// 	this.findObjectsToUpdate(parentGroup)
-				// }
-
 			}
 
 			return findObjectsToUpdate;

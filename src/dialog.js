@@ -19,7 +19,7 @@ export default function(context) {
 		} else {
 
 			// Fallback message if selcted object is not a group
-			self.showMessage("You must select a group")
+			utils.showMessage("You must select a group")
 		}
 
 	})
