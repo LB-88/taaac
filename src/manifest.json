@@ -12,7 +12,7 @@
 		},
 		{
 			"script" : "./dialog.js",
-			"shortcut" : "command shift k",
+			"shortcut" : "command shift d",
 			"name" : "Configure Taaac",
 			"identifier" : "configure-taaac"
 		},
