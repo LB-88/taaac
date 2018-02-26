@@ -117,6 +117,73 @@ export default class Utils {
 
 
 
+	// --------------------------------------------------------
+	// CREATE DIALOG WINDOW (ARTBOARD)
+	// --------------------------------------------------------
+
+	createArtboardDialog(selectedObject) {
+
+		// Setup the window
+		var alert = COSAlertWindow.new()
+		alert.setMessageText("Configure Taaac")
+		alert.addButtonWithTitle("Ok")
+		alert.addButtonWithTitle("Cancel")
+
+		// Create the main view
+		var viewWidth = 400,
+			viewHeight = 150,
+			viewSpacer = 10
+
+		var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight))
+		alert.addAccessoryView(view)
+
+		// Create labels
+		var description = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, (viewWidth - 100), 35))
+
+		// Configure labels
+		description.setStringValue('Check "Auto update" to refresh artboard height on selection change.')
+		description.setSelectable(false)
+		description.setEditable(false)
+		description.setBezeled(false)
+		description.setDrawsBackground(false)
+
+		// Add labels
+		view.addSubview(description)
+
+		// Create checkboxes
+		autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 125, viewWidth - viewSpacer, 20))
+
+		// Configure checkboxes
+		autoUpdateCheckbox.setButtonType(NSSwitchButton)
+		autoUpdateCheckbox.setBezelStyle(0)
+		autoUpdateCheckbox.setTitle("Auto update")
+		autoUpdateCheckbox.setState(NSOnState)
+
+		// Add fields
+		view.addSubview(autoUpdateCheckbox)
+
+		// Get selected object values
+		var isTaaacSetValue = this.command.valueForKey_onLayer_forPluginIdentifier('isTaaacSet', selectedObject.sketchObject, 'taaac')
+		if (isTaaacSetValue) {
+			var autoUpdateValue = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac')
+
+			// If values are not null set fields values and call functions
+			if ((autoUpdateValue!="") && (autoUpdateValue!=null)) {
+				if (autoUpdateValue=="1") {
+					autoUpdateCheckbox.setState(NSOnState)
+				} else {
+					autoUpdateCheckbox.setState(NSOffState)
+				}
+			}
+		}
+
+		// Show the dialog
+		return [alert]
+	}
+
+
+
+
 
 	// --------------------------------------------------------
 	// STORE DIALOG WINDOW INPUT
@@ -127,29 +194,38 @@ export default class Utils {
 		// Check if user clicked on Ok button
 		if (response == "1000") {
 
-			// Get values from fields
-			var paddingString = paddingTextField.stringValue()
-			var spacingString = spacingTextField.stringValue()
 			var autoUpdate = autoUpdateCheckbox.stringValue()
 			var isTaaacSet = true
-			if (((spacingString=="") || (spacingString==null)) && ((paddingString=="") || (paddingString==null))) {
-				isTaaacSet = false
+
+			// Check if selected object is not an artboard and save padding and spacing values
+			if (selectedObject.isGroup) {
+
+
+				// Get values from fields
+				var paddingString = paddingTextField.stringValue()
+				var spacingString = spacingTextField.stringValue()
+				if (((spacingString=="") || (spacingString==null)) && ((paddingString=="") || (paddingString==null))) {
+					isTaaacSet = false
+				}
+
+				// Validate and store values
+				this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac')
+				if ((spacingString=="") || (spacingString==null)) {
+					this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac')
+				} else if (this.validatePadding(spacingString)) {
+					this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac')
+					this.spacing(selectedObject)
+				}
+				if ((paddingString=="") || (paddingString==null)) {
+					this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac')
+				} else if (this.validatePadding(paddingString)) {
+					this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
+					this.padding(selectedObject)
+				}
+
 			}
 
-			// Validate and store values
-			this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac')
-			if ((spacingString=="") || (spacingString==null)) {
-				this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac')
-			} else if (this.validatePadding(spacingString)) {
-				this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac')
-				this.spacing(selectedObject)
-			}
-			if ((paddingString=="") || (paddingString==null)) {
-				this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac')
-			} else if (this.validatePadding(paddingString)) {
-				this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac')
-				this.padding(selectedObject)
-			}
+			// Store auto update value
 			this.command.setValue_forKey_onLayer_forPluginIdentifier(autoUpdate, 'autoUpdate', selectedObject.sketchObject, 'taaac')
 		}
 	}
@@ -162,7 +238,19 @@ export default class Utils {
 	// --------------------------------------------------------
 
 	showDialog(selectedObject) {
-		var window = this.createDialog(selectedObject)
+
+		// If is artboard
+		if (selectedObject.isArtboard) {
+
+			// Create artboard dialog
+			var window = this.createArtboardDialog(selectedObject)
+
+		// If is group or else
+		} else {
+
+			// Create dialog
+			var window = this.createDialog(selectedObject)
+		}
 		var alert = window[0]
 
 		// Show dialog window and store the 'response' in a variable
