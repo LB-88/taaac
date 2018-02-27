@@ -22,17 +22,30 @@ export function taaac (context) {
 				// Check if Taaac is set and auto update is true
 				if ((utils.isTaaacSet(objectToUpdate.object)) && (utils.isAutoUpdateSet(objectToUpdate.object))) {
 
-					var paddingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('padding', objectToUpdate.object.sketchObject, 'taaac')
-					var spacingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('spacing', objectToUpdate.object.sketchObject, 'taaac')
+					// Check if object to update is artboard and resize it
+					if (objectToUpdate.isArtboard) {
 
-					// If spacing is set call function
-					if ((spacingValue!="") && (spacingValue!=null)) {
-						utils.spacing(objectToUpdate.object)
-					}
+						log("enter artboard loop")
+						utils.resizeArtoboard(objectToUpdate.object)
 
-					// If padding is set call function
-					if ((paddingValue!="") && (paddingValue!=null)) {
-						utils.padding(objectToUpdate.object)
+					// Else update padding and spacing value
+					} else {
+
+
+						var paddingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('padding', objectToUpdate.object.sketchObject, 'taaac')
+						var spacingValue = utils.command.valueForKey_onLayer_forPluginIdentifier('spacing', objectToUpdate.object.sketchObject, 'taaac')
+
+						// If spacing is set call function
+						if ((spacingValue!="") && (spacingValue!=null)) {
+							utils.spacing(objectToUpdate.object)
+						}
+
+						// If padding is set call function
+						if ((paddingValue!="") && (paddingValue!=null)) {
+							utils.padding(objectToUpdate.object)
+						}
+
+
 					}
 				}
 

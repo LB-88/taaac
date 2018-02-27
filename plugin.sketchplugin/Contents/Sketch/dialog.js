@@ -258,7 +258,7 @@ var Utils = function () {
 
 				// Create the main view
 				var viewWidth = 400,
-				    viewHeight = 150,
+				    viewHeight = 100,
 				    viewSpacer = 10;
 
 				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
@@ -268,7 +268,7 @@ var Utils = function () {
 				var description = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, viewWidth - 100, 35));
 
 				// Configure labels
-				description.setStringValue('Check "Auto update" to refresh artboard height on selection change.');
+				description.setStringValue('Check "Auto resize" to refresh artboard height on selection change.');
 				description.setSelectable(false);
 				description.setEditable(false);
 				description.setBezeled(false);
@@ -278,12 +278,12 @@ var Utils = function () {
 				view.addSubview(description);
 
 				// Create checkboxes
-				autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 125, viewWidth - viewSpacer, 20));
+				autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 85, viewWidth - viewSpacer, 20));
 
 				// Configure checkboxes
 				autoUpdateCheckbox.setButtonType(NSSwitchButton);
 				autoUpdateCheckbox.setBezelStyle(0);
-				autoUpdateCheckbox.setTitle("Auto update");
+				autoUpdateCheckbox.setTitle("Auto resize");
 				autoUpdateCheckbox.setState(NSOnState);
 
 				// Add fields
@@ -291,6 +291,7 @@ var Utils = function () {
 
 				// Get selected object values
 				var isTaaacSetValue = this.command.valueForKey_onLayer_forPluginIdentifier('isTaaacSet', selectedObject.sketchObject, 'taaac');
+
 				if (isTaaacSetValue) {
 					var autoUpdateValue = this.command.valueForKey_onLayer_forPluginIdentifier('autoUpdate', selectedObject.sketchObject, 'taaac');
 
@@ -327,7 +328,7 @@ var Utils = function () {
 					var isTaaacSet = true;
 
 					// Check if selected object is not an artboard and save padding and spacing values
-					if (selectedObject.isGroup) {
+					if (!selectedObject.isArtboard) {
 
 						// Get values from fields
 						var paddingString = paddingTextField.stringValue();
@@ -337,7 +338,6 @@ var Utils = function () {
 						}
 
 						// Validate and store values
-						this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac');
 						if (spacingString == "" || spacingString == null) {
 							this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac');
 						} else if (this.validatePadding(spacingString)) {
@@ -354,6 +354,9 @@ var Utils = function () {
 
 					// Store auto update value
 					this.command.setValue_forKey_onLayer_forPluginIdentifier(autoUpdate, 'autoUpdate', selectedObject.sketchObject, 'taaac');
+
+					// Set is Taaac set value
+					this.command.setValue_forKey_onLayer_forPluginIdentifier(isTaaacSet, 'isTaaacSet', selectedObject.sketchObject, 'taaac');
 				}
 			}
 
