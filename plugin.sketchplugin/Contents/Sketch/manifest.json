@@ -11,6 +11,12 @@
       "identifier": "update-taaac"
     },
     {
+      "script": "resize-artboard.js",
+      "shortcut": "command shift b",
+      "name": "Resize Artboard",
+      "identifier": "resize-artboard"
+    },
+    {
       "script": "dialog.js",
       "shortcut": "command shift d",
       "name": "Configure Taaac",
@@ -30,7 +36,8 @@
     "title": "Taaac",
     "items": [
       "configure-taaac",
-      "update-taaac"
+      "update-taaac",
+      "resize-artboard"
     ]
   },
   "version": "0.1.0",

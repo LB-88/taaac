@@ -353,29 +353,25 @@ var Utils = function () {
 					var autoUpdate = autoUpdateCheckbox.stringValue();
 					var isTaaacSet = true;
 
-					// Check if selected object is not an artboard and save padding and spacing values
-					if (!selectedObject.isArtboard) {
+					// Get values from fields
+					var paddingString = paddingTextField.stringValue();
+					var spacingString = spacingTextField.stringValue();
+					if ((spacingString == "" || spacingString == null) && (paddingString == "" || paddingString == null)) {
+						isTaaacSet = false;
+					}
 
-						// Get values from fields
-						var paddingString = paddingTextField.stringValue();
-						var spacingString = spacingTextField.stringValue();
-						if ((spacingString == "" || spacingString == null) && (paddingString == "" || paddingString == null)) {
-							isTaaacSet = false;
-						}
-
-						// Validate and store values
-						if (spacingString == "" || spacingString == null) {
-							this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac');
-						} else if (this.validatePadding(spacingString)) {
-							this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac');
-							this.spacing(selectedObject);
-						}
-						if (paddingString == "" || paddingString == null) {
-							this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac');
-						} else if (this.validatePadding(paddingString)) {
-							this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac');
-							this.padding(selectedObject);
-						}
+					// Validate and store values
+					if (spacingString == "" || spacingString == null) {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'spacing', selectedObject.sketchObject, 'taaac');
+					} else if (this.validatePadding(spacingString)) {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier(spacingString, 'spacing', selectedObject.sketchObject, 'taaac');
+						this.spacing(selectedObject);
+					}
+					if (paddingString == "" || paddingString == null) {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier('', 'padding', selectedObject.sketchObject, 'taaac');
+					} else if (this.validatePadding(paddingString)) {
+						this.command.setValue_forKey_onLayer_forPluginIdentifier(paddingString, 'padding', selectedObject.sketchObject, 'taaac');
+						this.padding(selectedObject);
 					}
 
 					// Store auto update value
@@ -398,18 +394,8 @@ var Utils = function () {
 		value: function () {
 			function showDialog(selectedObject) {
 
-				// If is artboard
-				if (selectedObject.isArtboard) {
-
-					// Create artboard dialog
-					var window = this.createArtboardDialog(selectedObject);
-
-					// If is group or else
-				} else {
-
-					// Create dialog
-					var window = this.createDialog(selectedObject);
-				}
+				// Create dialog
+				var window = this.createDialog(selectedObject);
 				var alert = window[0];
 
 				// Show dialog window and store the 'response' in a variable
@@ -780,6 +766,56 @@ var Utils = function () {
 			}
 
 			return spacing;
+		}()
+
+		// --------------------------------------------------------
+		// RESIZE ARTBOARD Set artboard height to content height
+		// --------------------------------------------------------
+
+	}, {
+		key: "resizeArtboard",
+		value: function () {
+			function resizeArtboard(selectedObject) {
+
+				// Set vars
+				var self = this,
+				    groupFrame = selectedObject.frame,
+				    groupAbsoluteRect = selectedObject.sketchObject.absoluteRect(),
+				    groupAbsoluteXpos = groupAbsoluteRect.x(),
+				    groupAbsoluteYpos = groupAbsoluteRect.y(),
+				    groupAbsoluteWidth = groupAbsoluteRect.width(),
+				    totalHeight = 0;
+
+				// Iterate sub-layers and get max height value
+				selectedObject.iterate(function (layer) {
+
+					// Get layer class name
+					var layerClass = layer.sketchObject["class"]();
+
+					// If selected object is symbol use old API to set vars else use new API
+					if (layerClass == "MSSymbolInstance") {
+						var object = layer.sketchObject,
+						    objectRect = object.absoluteRect(),
+						    objectY = objectRect.y() - groupAbsoluteYpos,
+						    objectHeight = objectRect.height();
+					} else {
+						var object = layer,
+						    objectRect = object.frame,
+						    objectY = objectRect.y,
+						    objectHeight = objectRect.height;
+					}
+
+					layerMaxHeight = objectY + objectHeight;
+
+					if (layerMaxHeight > totalHeight) {
+						totalHeight = layerMaxHeight;
+					}
+				});
+
+				selectedObject.frame = new self.sketch.Rectangle(groupAbsoluteXpos, groupAbsoluteYpos, groupAbsoluteWidth, backgroundHeight);
+			}
+
+			return resizeArtboard;
 		}()
 
 		// --------------------------------------------------------
