@@ -812,7 +812,7 @@ var Utils = function () {
 					}
 				});
 
-				selectedObject.frame = new self.sketch.Rectangle(groupAbsoluteXpos, groupAbsoluteYpos, groupAbsoluteWidth, backgroundHeight);
+				selectedObject.frame = new self.sketch.Rectangle(groupAbsoluteXpos, groupAbsoluteYpos, groupAbsoluteWidth, totalHeight);
 			}
 
 			return resizeArtboard;

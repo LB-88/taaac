@@ -629,7 +629,7 @@ export default class Utils {
 
 		})
 
-		selectedObject.frame = new self.sketch.Rectangle(groupAbsoluteXpos,groupAbsoluteYpos,groupAbsoluteWidth,backgroundHeight)
+		selectedObject.frame = new self.sketch.Rectangle(groupAbsoluteXpos,groupAbsoluteYpos,groupAbsoluteWidth,totalHeight)
 	}
 
 
