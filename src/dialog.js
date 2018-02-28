@@ -12,11 +12,6 @@ export default function(context) {
 		// Check if selected object is group
 		if (selectedObject.isGroup) {
 
-			// Check if selected object is artboard
-			if (selectedObject.isArtboard) {
-				utils.showMessage("Artboard");
-			}
-
 			// Show dialog
 			utils.showDialog(selectedObject)
 

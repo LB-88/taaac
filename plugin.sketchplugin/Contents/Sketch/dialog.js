@@ -88,11 +88,6 @@ exports["default"] = function (context) {
 		// Check if selected object is group
 		if (selectedObject.isGroup) {
 
-			// Check if selected object is artboard
-			if (selectedObject.isArtboard) {
-				utils.showMessage("Artboard");
-			}
-
 			// Show dialog
 			utils.showDialog(selectedObject);
 
@@ -162,51 +157,49 @@ var Utils = function () {
 				var view = NSView.alloc().initWithFrame(NSMakeRect(0, 0, viewWidth, viewHeight));
 				alert.addAccessoryView(view);
 
-				// Create labels
+				// Configure and add description
 				var description = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 33, viewWidth - 100, 35));
-				var paddingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(-1, viewHeight - 65, viewWidth / 2 - 10, 20));
-				var spacingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 65, viewWidth / 2 - 10, 20));
-
-				// Configure labels
-				description.setStringValue('Set values for padding and spacing. Check "Auto update" to refresh Taaac on selection change.');
+				if (selectedObject.isArtboard) {
+					description.setStringValue('Set values for spacing. Check "Auto update" to refresh Taaac on selection change.');
+				} else {
+					description.setStringValue('Set values for padding and spacing. Check "Auto update" to refresh Taaac on selection change.');
+				}
 				description.setSelectable(false);
 				description.setEditable(false);
 				description.setBezeled(false);
 				description.setDrawsBackground(false);
+				view.addSubview(description);
 
-				paddingLabel.setStringValue("Padding");
-				paddingLabel.setSelectable(false);
-				paddingLabel.setEditable(false);
-				paddingLabel.setBezeled(false);
-				paddingLabel.setDrawsBackground(false);
-
+				// Configure and add spacing
+				var spacingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(-1, viewHeight - 65, viewWidth / 2 - 10, 20));
 				spacingLabel.setStringValue("Spacing");
 				spacingLabel.setSelectable(false);
 				spacingLabel.setEditable(false);
 				spacingLabel.setBezeled(false);
 				spacingLabel.setDrawsBackground(false);
-
-				// Add labels
-				view.addSubview(description);
-				view.addSubview(paddingLabel);
 				view.addSubview(spacingLabel);
+				spacingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 85, 130, 20));
+				view.addSubview(spacingTextField);
 
-				// Create textfields
-				paddingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(0, viewHeight - 85, 130, 20));
-				spacingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 85, 130, 20));
+				// Configure and add padding
+				if (!selectedObject.isArtboard) {
+					var paddingLabel = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 65, viewWidth / 2 - 10, 20));
+					paddingLabel.setStringValue("Padding");
+					paddingLabel.setSelectable(false);
+					paddingLabel.setEditable(false);
+					paddingLabel.setBezeled(false);
+					paddingLabel.setDrawsBackground(false);
+					view.addSubview(paddingLabel);
+					paddingTextField = NSTextField.alloc().initWithFrame(NSMakeRect(140, viewHeight - 85, 130, 20));
+					view.addSubview(paddingTextField);
+				}
 
-				// Create checkboxes
+				// Configure and add checkboxes
 				autoUpdateCheckbox = NSButton.alloc().initWithFrame(NSMakeRect(0, viewHeight - 125, viewWidth - viewSpacer, 20));
-
-				// Configure checkboxes
 				autoUpdateCheckbox.setButtonType(NSSwitchButton);
 				autoUpdateCheckbox.setBezelStyle(0);
 				autoUpdateCheckbox.setTitle("Auto update");
 				autoUpdateCheckbox.setState(NSOnState);
-
-				// Add fields
-				view.addSubview(paddingTextField);
-				view.addSubview(spacingTextField);
 				view.addSubview(autoUpdateCheckbox);
 
 				// Get selected object values
@@ -221,7 +214,7 @@ var Utils = function () {
 						spacingTextField.setStringValue(spacingValue);
 						this.spacing(selectedObject);
 					}
-					if (paddingValue != "" && paddingValue != null) {
+					if (paddingValue != "" && paddingValue != null && !selectedObject.isArtboard) {
 						paddingTextField.setStringValue(paddingValue);
 						this.padding(selectedObject);
 					}
@@ -326,10 +319,14 @@ var Utils = function () {
 
 					var autoUpdate = autoUpdateCheckbox.stringValue();
 					var isTaaacSet = true;
+					var paddingString = "";
+					var spacingString = "";
 
 					// Get values from fields
-					var paddingString = paddingTextField.stringValue();
-					var spacingString = spacingTextField.stringValue();
+					if (!selectedObject.isArtboard) {
+						paddingString = paddingTextField.stringValue();
+					}
+					spacingString = spacingTextField.stringValue();
 					if ((spacingString == "" || spacingString == null) && (paddingString == "" || paddingString == null)) {
 						isTaaacSet = false;
 					}

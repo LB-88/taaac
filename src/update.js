@@ -12,9 +12,18 @@ export default function(context) {
 		// Check if Taaac is set
 		if (utils.isTaaacSet(selectedObject)) {
 
-			// Call spacing and padding functions
+			// Call spacing function
 			utils.spacing(selectedObject)
-			utils.padding(selectedObject)
+
+			// Call padding function
+			if (!selectedObject.isArtboard) {
+				utils.padding(selectedObject)
+			}
+
+			// Call resize function
+			if (selectedObject.isArtboard) {
+				utils.resizeArtboard(selectedObject)
+			}
 		}
 
 	})
